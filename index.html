@@ -583,6 +583,15 @@
     transform: translateX(-50%) translateY(0);
   }
 </style>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "32adeb26-bc3e-4f21-8a33-212ad164cb4c",
+    });
+  });
+</script>
 </head>
 <body>
 
