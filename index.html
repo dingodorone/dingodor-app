@@ -515,6 +515,44 @@
   .nav-item svg { width: 20px; height: 20px; }
   .nav-item span { font-size: 10px; font-weight: 500; }
 
+  /* AFFILIATE CARD */
+  .affiliate-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .affiliate-card:active { background: var(--bg3); }
+  .affiliate-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .affiliate-info { flex: 1; min-width: 0; }
+  .affiliate-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .affiliate-desc { font-size: 11px; color: var(--muted); }
+  .affiliate-btn {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   /* INSTALL BANNER */
   .install-banner {
     display: none;
@@ -589,6 +627,8 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "32adeb26-bc3e-4f21-8a33-212ad164cb4c",
+      serviceWorkerPath: "/sw.js",
+      notifyButton: { enable: false },
     });
   });
 </script>
@@ -647,7 +687,7 @@
 <!-- SECTION PROMOS -->
 <div class="section" id="sec-promos">
   <div class="hero" style="margin-bottom:20px">
-    <div class="hero-label">🛒 26 – 28 mars 2026</div>
+    <div class="hero-label">🛒 01 – 07 avril 2026</div>
     <h2>Codes promo du moment</h2>
     <p>AliExpress 🇫🇷🇧🇪, SwitchBot, GeekBuying, GamsGo. Cliquez sur le code pour le copier.</p>
   </div>
@@ -658,6 +698,34 @@
     <button class="tab" onclick="filterPromos('SwitchBot', this)">SwitchBot</button>
     <button class="tab" onclick="filterPromos('GeekBuying', this)">GeekBuying</button>
     <button class="tab" onclick="filterPromos('GamsGo', this)">GamsGo</button>
+    <button class="tab" onclick="filterPromos('SwitchBot', this)">SwitchBot</button>
+  </div>
+  <div class="section-title" style="margin-top:20px">Boutiques partenaires</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px" id="affiliate-list">
+    <a class="affiliate-card" href="https://amzn.to/415XsVU" target="_blank" rel="noopener">
+      <div class="affiliate-icon">📦</div>
+      <div class="affiliate-info">
+        <div class="affiliate-name">Amazon France</div>
+        <div class="affiliate-desc">Mes produits testés & recommandés</div>
+      </div>
+      <span class="affiliate-btn">Visiter →</span>
+    </a>
+    <a class="affiliate-card" href="https://temu.to/m/ulbndn53etv" target="_blank" rel="noopener">
+      <div class="affiliate-icon">🛍️</div>
+      <div class="affiliate-info">
+        <div class="affiliate-name">Temu</div>
+        <div class="affiliate-desc">Bons plans & cadeaux gratuits nouveaux</div>
+      </div>
+      <span class="affiliate-btn">Visiter →</span>
+    </a>
+    <a class="affiliate-card" href="https://www.instant-gaming.com/?igr=dingodor" target="_blank" rel="noopener">
+      <div class="affiliate-icon">🎮</div>
+      <div class="affiliate-info">
+        <div class="affiliate-name">Instant Gaming</div>
+        <div class="affiliate-desc">Jeux PC, PlayStation, Xbox moins chers</div>
+      </div>
+      <span class="affiliate-btn">Visiter →</span>
+    </a>
   </div>
   <div class="promos" id="promos-list"></div>
 </div>
@@ -727,28 +795,24 @@
 let articles = [];
 
 async function loadArticlesFromRSS() {
-  const RSS_URL = 'https://dingodoronetech.wordpress.com/feed/';
-  const API = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(RSS_URL) + '&count=10';
-  
+  showLoadingArticles();
+  // Use Netlify redirect proxy to avoid CORS
   try {
-    showLoadingArticles();
-    const res = await fetch(API);
+    const res = await fetch('https://feed2json.org/convert?url=' + encodeURIComponent('https://dingodoronetech.wordpress.com/feed/'));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    
-    if (data.status === 'ok' && data.items.length > 0) {
-      articles = data.items.map(item => ({
-        title: item.title,
-        date: new Date(item.pubDate).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
-        tag: item.categories && item.categories.length > 0 ? item.categories[0] : 'Article',
-        excerpt: item.description.replace(/<[^>]*>/g, '').substring(0, 150) + '...',
-        url: item.link
-      }));
-      renderArticles();
-    } else {
-      showArticleError();
-    }
+    if (!data.items || data.items.length === 0) throw new Error('Aucun article');
+    articles = data.items.map(item => ({
+      title: item.title || 'Sans titre',
+      date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+      tag: 'Article',
+      excerpt: (item.summary || item.content_html || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
+      url: item.url
+    }));
+    renderArticles();
   } catch(e) {
-    showArticleError();
+    document.getElementById('home-articles').innerHTML = '<div style="color:var(--accent);font-size:13px;padding:20px 0">Erreur : ' + e.message + '</div>';
+    document.getElementById('all-articles').innerHTML = '<div style="color:var(--accent);font-size:13px;padding:20px 0">Erreur : ' + e.message + '</div>';
   }
 }
 
@@ -770,38 +834,44 @@ function renderArticles() {
 }
 
 const promos = [
-  { code: "FRBD04",     brand: "AliExpress 🇫🇷", desc: "4€ de remise dès 35€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRBD08",     brand: "AliExpress 🇫🇷", desc: "8€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRBD12",     brand: "AliExpress 🇫🇷", desc: "12€ de remise dès 109€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRBD25",     brand: "AliExpress 🇫🇷", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRBD40",     brand: "AliExpress 🇫🇷", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "BD04VIO",    brand: "AliExpress 🇧🇪", desc: "4€ de remise dès 35€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "BD08VIO",    brand: "AliExpress 🇧🇪", desc: "8€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "BD12VIO",    brand: "AliExpress 🇧🇪", desc: "12€ de remise dès 109€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "BD25VIO",    brand: "AliExpress 🇧🇪", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "BD40VIO",    brand: "AliExpress 🇧🇪", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress France - 01/04 au 07/04/2026
+  { code: "CDFR02",  brand: "AliExpress 🇫🇷", desc: "2€ de remise dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR04",  brand: "AliExpress 🇫🇷", desc: "4€ de remise dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR07",  brand: "AliExpress 🇫🇷", desc: "7€ de remise dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR09",  brand: "AliExpress 🇫🇷", desc: "9€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR13",  brand: "AliExpress 🇫🇷", desc: "13€ de remise dès 99€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR20",  brand: "AliExpress 🇫🇷", desc: "20€ de remise dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR25",  brand: "AliExpress 🇫🇷", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR40",  brand: "AliExpress 🇫🇷", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "CDFR55",  brand: "AliExpress 🇫🇷", desc: "55€ de remise dès 459€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress Belgique - 01/04 au 07/04/2026
+  { code: "VIOFUN02", brand: "AliExpress 🇧🇪", desc: "2€ de remise dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN04", brand: "AliExpress 🇧🇪", desc: "4€ de remise dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN07", brand: "AliExpress 🇧🇪", desc: "7€ de remise dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN09", brand: "AliExpress 🇧🇪", desc: "9€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN13", brand: "AliExpress 🇧🇪", desc: "13€ de remise dès 99€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN20", brand: "AliExpress 🇧🇪", desc: "20€ de remise dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN25", brand: "AliExpress 🇧🇪", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN40", brand: "AliExpress 🇧🇪", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIOFUN55", brand: "AliExpress 🇧🇪", desc: "55€ de remise dès 459€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // SwitchBot
   { code: "10UPX1K7ODVGTO", brand: "SwitchBot Amazon", desc: "10% de réduction site officiel", url: "https://amzn.to/3nsAaWu" },
-  { code: "10Dingodor", brand: "SwitchBot Officiel", desc: "Code promo exclusif Dingodor", url: "https://switchbot.vip/3niJzzB" },
-  { code: "DEC88",      brand: "GamsGo", desc: "5% de réduction supplémentaire", url: "https://www.gamsgo.com/partner/Gsbb4H" },
-  { code: "25NOVS05",   brand: "GeekBuying", desc: "55€ de remise dès 650€ d'achat", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS04",   brand: "GeekBuying", desc: "35€ de remise dès 450€ d'achat", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS03",   brand: "GeekBuying", desc: "25€ de remise dès 350€ d'achat", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS02",   brand: "GeekBuying", desc: "15€ de remise dès 150€ d'achat", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS01",   brand: "GeekBuying", desc: "5€ de remise dès 50€ d'achat", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-];
-
-const socials = [
-  { name: "YouTube", handle: "@DingodorOneTech", icon: "📺", color: "#1a0a0a", url: "https://www.youtube.com/@DingodorOneTech" },
-  { name: "Facebook", handle: "DingodorOne", icon: "📘", color: "#0a0f1a", url: "https://www.facebook.com/DingodorOne" },
-  { name: "Discord", handle: "Rejoindre", icon: "💬", color: "#0d0c1a", url: "https://discord.gg/XnxvfC" },
-  { name: "TikTok", handle: "@dingodorone", icon: "🎵", color: "#0a0a0a", url: "https://www.tiktok.com/@dingodorone" },
-  { name: "Instagram", handle: "@dingodor_one_tech", icon: "📸", color: "#1a0a12", url: "https://www.instagram.com/dingodor_one_tech/" },
-  { name: "Twitch", handle: "dingodorone", icon: "🎮", color: "#0f0a1a", url: "https://www.twitch.tv/dingodorone" }
+  { code: "10Dingodor", brand: "SwitchBot Officiel", desc: "Code promo exclusif Dingodor", url: "https://www.switch-bot.com/?sca_ref=1102794.rW5weNSejk" },
+  // GamsGo
+  { code: "DEC88", brand: "GamsGo", desc: "Netflix, Disney+, ChatGPT... 5% de réduction", url: "https://www.gamsgo.com/partner/Gsbb4H" },
+  // GeekBuying
+  { code: "25NOVS05", brand: "GeekBuying", desc: "55€ de remise dès 650€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVS04", brand: "GeekBuying", desc: "35€ de remise dès 450€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVS03", brand: "GeekBuying", desc: "25€ de remise dès 350€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVS02", brand: "GeekBuying", desc: "15€ de remise dès 150€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVS01", brand: "GeekBuying", desc: "5€ de remise dès 50€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVSH1", brand: "GeekBuying 🏠", desc: "10€ dès 150€ (maison connectée)", url: "https://www.geekbuying.com/go/8AN4bZMT" },
+  { code: "25NOVSH2", brand: "GeekBuying 🏠", desc: "15€ dès 200€ (maison connectée)", url: "https://www.geekbuying.com/go/8AN4bZMT" },
 ];
 
 // === RENDER ===
 function articleCard(a) {
-  return `<a class="article-card" href="${a.url}" target="_blank">
+  return `<a class="article-card" href="${a.url}" target="_blank" rel="noopener">
     <div class="article-meta">
       <span class="article-tag">${a.tag}</span>
       <span class="article-date">${a.date}</span>
@@ -821,14 +891,17 @@ function socialCard(s) {
 }
 
 function promoCard(p) {
-  return `<div class="promo-card">
+  return `<a class="promo-card" href="${p.url}" target="_blank" rel="noopener" style="text-decoration:none">
     <div class="promo-badge">${p.code}</div>
     <div class="promo-info">
       <div class="promo-brand">${p.brand}</div>
       <div class="promo-desc">${p.desc}</div>
     </div>
-    <button class="promo-copy" onclick="copyCode('${p.code}', event)">Copier</button>
-  </div>`;
+    <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+      <button class="promo-copy" onclick="copyCode('${p.code}', event)" style="font-size:10px;padding:5px 8px">Copier</button>
+      <span style="font-size:10px;color:var(--accent);text-align:center;font-weight:500">Visiter →</span>
+    </div>
+  </a>`;
 }
 
 // Load articles from WordPress RSS
@@ -903,7 +976,9 @@ function filterPromos(brand, el) {
   document.querySelectorAll('#promo-filters .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   const filtered = brand === 'tous' ? promos : promos.filter(p => p.brand.includes(brand));
-  document.getElementById('promos-list').innerHTML = filtered.map(promoCard).join('');
+  document.getElementById('promos-list').innerHTML = filtered.length
+    ? filtered.map(promoCard).join('')
+    : '<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">Aucun code pour cette marque.</div>';
 }
 
 // === TOAST ===
@@ -954,8 +1029,33 @@ function dismissInstall() {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      
+      // Vérifier les mises à jour toutes les 60 secondes
+      setInterval(() => reg.update(), 60000);
+
+      // Quand une nouvelle version est trouvée
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Nouvelle version disponible - mise à jour silencieuse
+            newWorker.postMessage('skipWaiting');
+          }
+        });
+      });
+
+      // Recharger la page quand le nouveau service worker prend le contrôle
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    } catch(e) {}
   });
 }
 </script>

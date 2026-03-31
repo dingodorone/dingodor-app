@@ -1,0 +1,22 @@
+[[redirects]]
+  from = "/api/feed"
+  to = "https://feed2json.org/convert?url=https%3A%2F%2Fdingodoronetech.wordpress.com%2Ffeed%2F"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/promos"
+  to = "https://raw.githubusercontent.com/dingodorone/dingodor-data/main/promos.json"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
