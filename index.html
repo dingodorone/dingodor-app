@@ -796,24 +796,51 @@ let articles = [];
 
 async function loadArticlesFromRSS() {
   showLoadingArticles();
-  // Use Netlify redirect proxy to avoid CORS
+  const FEED = 'https://dingodoronetech.wordpress.com/feed/';
+  const APIS = [
+    'https://feed2json.org/convert?url=' + encodeURIComponent(FEED),
+    'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(FEED) + '&count=20',
+  ];
+
+  // Try feed2json first
   try {
-    const res = await fetch('https://feed2json.org/convert?url=' + encodeURIComponent('https://dingodoronetech.wordpress.com/feed/'));
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (!data.items || data.items.length === 0) throw new Error('Aucun article');
-    articles = data.items.map(item => ({
-      title: item.title || 'Sans titre',
-      date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
-      tag: 'Article',
-      excerpt: (item.summary || item.content_html || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
-      url: item.url
-    }));
-    renderArticles();
-  } catch(e) {
-    document.getElementById('home-articles').innerHTML = '<div style="color:var(--accent);font-size:13px;padding:20px 0">Erreur : ' + e.message + '</div>';
-    document.getElementById('all-articles').innerHTML = '<div style="color:var(--accent);font-size:13px;padding:20px 0">Erreur : ' + e.message + '</div>';
-  }
+    const res = await fetch(APIS[0], { mode: 'cors' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.items && data.items.length > 0) {
+        articles = data.items.map(item => ({
+          title: item.title || 'Sans titre',
+          date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+          tag: 'Article',
+          excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
+          url: item.url
+        }));
+        renderArticles();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // Try rss2json fallback
+  try {
+    const res = await fetch(APIS[1], { mode: 'cors' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'ok' && data.items.length > 0) {
+        articles = data.items.map(item => ({
+          title: item.title || 'Sans titre',
+          date: new Date(item.pubDate).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+          tag: item.categories?.[0] || 'Article',
+          excerpt: (item.description || '').replace(/<[^>]*>/g,'').substring(0,150) + '...',
+          url: item.link
+        }));
+        renderArticles();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  showArticleError();
 }
 
 function showLoadingArticles() {
