@@ -885,11 +885,22 @@ function articleCard(a) {
   </a>`;
 }
 
+const socials = [
+  { name: "YouTube", icon: "▶️", desc: "Vidéos & tests domotique", url: "https://www.youtube.com/user/dingodor1", color: "#ff0000" },
+  { name: "Facebook", icon: "📘", desc: "Actus & discussions", url: "https://www.facebook.com/DingodorOne", color: "#1877f2" },
+  { name: "Discord", icon: "💬", desc: "Communauté domotique", url: "https://discord.gg/jKkUg4B", color: "#5865f2" },
+  { name: "TikTok", icon: "🎵", desc: "Shorts & bons plans", url: "https://www.tiktok.com/@dingodorone", color: "#010101" },
+  { name: "Instagram", icon: "📸", desc: "Photos & coulisses", url: "https://www.instagram.com/dingodor_one_tech/", color: "#e1306c" },
+  { name: "Twitch", icon: "🎮", desc: "Lives & démos en direct", url: "https://www.twitch.tv/dingodorone", color: "#9146ff" },
+];
+
+// socials rendered on DOMContentLoaded
+
 function socialCard(s) {
   return `<a class="social-card" href="${s.url}" target="_blank" style="border-color:rgba(255,255,255,0.08)">
     <div class="social-icon" style="background:${s.color};font-size:20px">${s.icon}</div>
     <div class="social-name">${s.name}</div>
-    <div class="social-handle">${s.handle}</div>
+    <div class="social-handle">${s.desc}</div>
   </a>`;
 }
 
@@ -910,8 +921,9 @@ function promoCard(p) {
 // Load articles from WordPress RSS
 loadArticlesFromRSS();
 document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
-document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
+// socials rendered on DOMContentLoaded
 document.getElementById('promos-list').innerHTML = promos.map(promoCard).join('');
+  document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
 
 // === NAVIGATION ===
 function switchSection(id) {
