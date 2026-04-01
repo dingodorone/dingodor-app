@@ -730,6 +730,33 @@
   <div class="promos" id="promos-list"></div>
 </div>
 
+
+<!-- SECTION RADIO -->
+<div class="section" id="sec-radio">
+  <div class="hero-label">📻 Radio Dingo</div>
+  <h2 style="margin:0 0 6px">Radio en direct</h2>
+  <p style="color:var(--muted);font-size:13px;margin:0 0 24px">Écoutez la radio directement depuis l'app !</p>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:20px">
+    <div id="radio-icon" style="font-size:48px;margin-bottom:12px">📻</div>
+    <div id="radio-title" style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px">Radio Dingo</div>
+    <div id="radio-status" style="font-size:12px;color:var(--muted);margin-bottom:20px">Appuyez sur Play pour écouter</div>
+    
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+      <button id="radio-btn" onclick="toggleRadio()" style="background:var(--accent);border:none;border-radius:50%;width:64px;height:64px;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s">▶️</button>
+    </div>
+
+    <div style="margin-top:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:var(--muted)">🔈</span>
+      <input type="range" id="radio-volume" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(this.value)" style="flex:1;accent-color:var(--accent)">
+      <span style="font-size:12px;color:var(--muted)">🔊</span>
+    </div>
+  </div>
+
+  <audio id="radio-audio" preload="none">
+    <source src="http://icecast.radiofrance.fr/mouv-hifi.aac" type="audio/aac">
+  </audio>
+</div>
 <!-- SECTION RÉSEAUX -->
 <div class="section" id="sec-reseaux">
   <div class="section-title">Me retrouver sur</div>
@@ -924,6 +951,37 @@ document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(soci
 // socials rendered on DOMContentLoaded
 document.getElementById('promos-list').innerHTML = promos.map(promoCard).join('');
   document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
+
+
+// === RADIO ===
+let radioPlaying = false;
+const radioAudio = document.getElementById('radio-audio');
+
+function toggleRadio() {
+  if (radioPlaying) {
+    radioAudio.pause();
+    radioAudio.src = '';
+    radioPlaying = false;
+    document.getElementById('radio-btn').textContent = '▶️';
+    document.getElementById('radio-status').textContent = 'En pause';
+    document.getElementById('radio-icon').textContent = '📻';
+  } else {
+    radioAudio.src = 'http://icecast.radiofrance.fr/mouv-hifi.aac';
+    radioAudio.load();
+    radioAudio.play().then(() => {
+      radioPlaying = true;
+      document.getElementById('radio-btn').textContent = '⏸️';
+      document.getElementById('radio-status').textContent = '🔴 En direct';
+      document.getElementById('radio-icon').textContent = '🎵';
+    }).catch(() => {
+      document.getElementById('radio-status').textContent = '❌ Erreur de connexion';
+    });
+  }
+}
+
+function setVolume(val) {
+  radioAudio.volume = val;
+}
 
 // === NAVIGATION ===
 function switchSection(id) {
