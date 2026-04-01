@@ -835,7 +835,7 @@ let articles = [];
 
 async function loadArticlesFromRSS() {
   showLoadingArticles();
-  const FEED = 'https://dingodoronetech.wordpress.com/feed/';
+  const FEED = 'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=100';
   const PROXY = 'https://corsproxy.io/?';
   const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
 
