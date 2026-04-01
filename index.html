@@ -1168,12 +1168,6 @@ setTimeout(() => {
 #tawkchat-minified-box, .tawk-min-container { bottom: 80px !important; }
 iframe[title*="chat"] { bottom: 80px !important; }
 </style>
-<style>
-/* Remonter le widget Tawk.to au dessus de la nav */
-div[id^="tawkchat"], iframe[id^="tawkchat"], .tawk-min-container, #tawkchat-minified-box { 
-  bottom: 75px !important; 
-}
-</style>
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -1188,5 +1182,39 @@ s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
 <!--End of Tawk.to Script-->
+<script>
+// Repositionner le widget Tawk.to au dessus de la barre de navigation
+function fixTawkPosition() {
+  const tawkIframe = document.querySelector('iframe[title*="chat"], iframe[src*="tawk"]');
+  if (tawkIframe) {
+    const container = tawkIframe.closest('div') || tawkIframe.parentElement;
+    if (container) {
+      container.style.setProperty('bottom', '75px', 'important');
+    }
+    tawkIframe.style.setProperty('bottom', '75px', 'important');
+  }
+  // Aussi via l'API Tawk
+  if (window.Tawk_API && window.Tawk_API.onLoad) {
+    window.Tawk_API.onLoad = function() {
+      window.Tawk_API.setAttributes({'bottom': '75px'}, function(error){});
+    };
+  }
+}
+// Essayer plusieurs fois car Tawk se charge en async
+setTimeout(fixTawkPosition, 2000);
+setTimeout(fixTawkPosition, 4000);
+setTimeout(fixTawkPosition, 6000);
+
+// Observer les changements du DOM pour attraper le widget quand il apparait
+const observer = new MutationObserver(() => {
+  const tawkEl = document.querySelector('[id*="tawk"], iframe[src*="tawk"]');
+  if (tawkEl) {
+    const parent = tawkEl.parentElement;
+    if (parent) parent.style.setProperty('bottom', '75px', 'important');
+    tawkEl.style.setProperty('bottom', '75px', 'important');
+  }
+});
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
 </body>
 </html>
