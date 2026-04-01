@@ -1074,5 +1074,32 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- POPUP ABONNEMENT -->
+<div id="subscribe-popup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#161616;border:1px solid #1a7aff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;position:relative">
+    <button onclick="closePopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
+    <div style="font-size:32px;margin-bottom:10px">📬</div>
+    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">Abonnez-vous au blog !</div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:18px">Recevez les derniers articles domotique & bons plans directement dans votre boîte mail.</div>
+    <a href="https://dingodoronetech.wordpress.com/#subscribe" target="_blank" style="display:block;background:#1a7aff;color:#fff;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:10px">✉️ S'abonner maintenant</a>
+    <button onclick="closePopup()" style="background:none;border:none;color:#666;font-size:12px;cursor:pointer;text-decoration:underline">Non merci</button>
+  </div>
+</div>
+
+<script>
+// Afficher la popup après 10 secondes, une seule fois par session
+function closePopup() {
+  document.getElementById('subscribe-popup').style.display = 'none';
+  sessionStorage.setItem('popup-closed', '1');
+}
+setTimeout(() => {
+  if (!sessionStorage.getItem('popup-closed')) {
+    const popup = document.getElementById('subscribe-popup');
+    popup.style.display = 'flex';
+  }
+}, 10000);
+</script>
+
 </body>
 </html>
