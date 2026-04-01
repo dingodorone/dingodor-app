@@ -274,6 +274,14 @@
     width: 14px; height: 14px;
     stroke: var(--muted);
   }
+  .article-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: var(--bg3);
+  }
 
   /* PROMO CARDS */
   .promos { display: flex; flex-direction: column; gap: 10px; }
@@ -836,13 +844,19 @@ async function loadArticlesFromRSS() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (data.items && data.items.length > 0) {
-      articles = data.items.map(item => ({
-        title: item.title || 'Sans titre',
-        date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
-        tag: 'Article',
-        excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
-        url: item.url
-      }));
+      articles = data.items.map(item => {
+        // Extract first image from content_html
+        const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+        const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
+        return {
+          title: item.title || 'Sans titre',
+          date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+          tag: 'Article',
+          excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
+          url: item.url,
+          img: img
+        };
+      });
       renderArticles();
       return;
     }
@@ -906,6 +920,7 @@ const promos = [
 // === RENDER ===
 function articleCard(a) {
   return `<a class="article-card" href="${a.url}" target="_blank" rel="noopener">
+    ${a.img ? `<img class="article-img" src="${a.img}" alt="${a.title}" loading="lazy" onerror="this.style.display='none'">` : ''}
     <div class="article-meta">
       <span class="article-tag">${a.tag}</span>
       <span class="article-date">${a.date}</span>
