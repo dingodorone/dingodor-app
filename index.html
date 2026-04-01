@@ -495,7 +495,7 @@
     -webkit-backdrop-filter: blur(14px);
     border-top: 1px solid var(--border);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
   }
 
@@ -807,6 +807,10 @@
   <button class="nav-item" id="nav-promos" onclick="switchSection('promos')">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
     <span>Promos</span>
+  </button>
+  <button class="nav-item" id="nav-radio" onclick="switchSection('radio')">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><circle cx="12" cy="12" r="1"/></svg>
+    <span>Radio</span>
   </button>
   <button class="nav-item" id="nav-about" onclick="switchSection('about')">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1163,6 +1167,12 @@ setTimeout(() => {
 <style>
 #tawkchat-minified-box, .tawk-min-container { bottom: 80px !important; }
 iframe[title*="chat"] { bottom: 80px !important; }
+</style>
+<style>
+/* Remonter le widget Tawk.to au dessus de la nav */
+div[id^="tawkchat"], iframe[id^="tawkchat"], .tawk-min-container, #tawkchat-minified-box { 
+  bottom: 75px !important; 
+}
 </style>
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
