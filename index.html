@@ -840,33 +840,44 @@ let articles = [];
 
 async function loadArticlesFromRSS() {
   showLoadingArticles();
-  const FEED = 'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=100';
   const PROXY = 'https://corsproxy.io/?';
-  const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
+  
+  // Charger plusieurs pages du flux RSS
+  const feeds = [
+    'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=50&paged=1',
+    'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=50&paged=2',
+  ];
 
-  try {
-    const res = await fetch(URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.items && data.items.length > 0) {
-      articles = data.items.map(item => {
-        // Extract first image from content_html
-        const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
-        const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
-        return {
-          title: item.title || 'Sans titre',
-          date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
-          tag: 'Article',
-          excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
-          url: item.url,
-          img: img
-        };
-      });
-      renderArticles();
-      return;
-    }
-  } catch(e) {}
-  showArticleError();
+  let allItems = [];
+
+  for (const FEED of feeds) {
+    try {
+      const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
+      const res = await fetch(URL);
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!data.items || data.items.length === 0) break;
+      allItems = allItems.concat(data.items);
+    } catch(e) { break; }
+  }
+
+  if (allItems.length > 0) {
+    articles = allItems.map(item => {
+      const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+      const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
+      return {
+        title: item.title || 'Sans titre',
+        date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+        tag: 'Article',
+        excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
+        url: item.url,
+        img: img
+      };
+    });
+    renderArticles();
+  } else {
+    showArticleError();
+  }
 }
 
 function showLoadingArticles() {
