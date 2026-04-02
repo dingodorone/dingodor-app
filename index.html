@@ -895,17 +895,26 @@ function showArticleError() {
 let articlesShown = 10;
 
 function renderArticles() {
+  articlesShown = 10;
   document.getElementById('home-articles').innerHTML = articles.slice(0, 3).map(articleCard).join('');
   document.getElementById('all-articles').innerHTML = articles.slice(0, articlesShown).map(articleCard).join('');
+  updateLoadMoreBtn();
+}
+
+function updateLoadMoreBtn() {
   const btn = document.getElementById('load-more-container');
-  btn.style.display = articles.length > articlesShown ? 'block' : 'none';
+  if (articles.length > articlesShown) {
+    btn.style.display = 'block';
+    btn.querySelector('button').textContent = 'Charger plus d\'articles ↓ (' + (articles.length - articlesShown) + ' restants)';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function loadMoreArticles() {
-  articlesShown += 10;
+  articlesShown = Math.min(articlesShown + 10, articles.length);
   document.getElementById('all-articles').innerHTML = articles.slice(0, articlesShown).map(articleCard).join('');
-  const btn = document.getElementById('load-more-container');
-  btn.style.display = articles.length > articlesShown ? 'block' : 'none';
+  updateLoadMoreBtn();
 }
 
 const promos = [
