@@ -842,26 +842,38 @@ async function loadArticlesFromRSS() {
   showLoadingArticles();
   const PROXY = 'https://corsproxy.io/?';
   
-  // Charger plusieurs pages du flux RSS
-  const feeds = [
-    'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=50&paged=1',
-    'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=50&paged=2',
-  ];
-
+  // WordPress.com limite le RSS à 10 articles par page
+  // On charge plusieurs pages pour avoir l'historique complet
   let allItems = [];
+  let page = 1;
+  let hasMore = true;
 
-  for (const FEED of feeds) {
+  while (hasMore && page <= 10) {
     try {
+      const FEED = 'https://dingodoronetech.wordpress.com/feed/?paged=' + page;
       const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
       const res = await fetch(URL);
       if (!res.ok) break;
       const data = await res.json();
-      if (!data.items || data.items.length === 0) break;
+      if (!data.items || data.items.length === 0) {
+        hasMore = false;
+        break;
+      }
       allItems = allItems.concat(data.items);
+      if (data.items.length < 10) hasMore = false;
+      page++;
     } catch(e) { break; }
   }
 
   if (allItems.length > 0) {
+    // Dédoublonner par URL
+    const seen = new Set();
+    allItems = allItems.filter(item => {
+      if (seen.has(item.url)) return false;
+      seen.add(item.url);
+      return true;
+    });
+
     articles = allItems.map(item => {
       const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
       const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
