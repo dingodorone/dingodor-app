@@ -700,7 +700,7 @@
 <!-- SECTION PROMOS -->
 <div class="section" id="sec-promos">
   <div class="hero" style="margin-bottom:20px">
-    <div class="hero-label">🛒 01 – 07 avril 2026</div>
+    <div class="hero-label">🛒 À partir du 13 avril 2026</div>
     <h2>Codes promo du moment</h2>
     <p>AliExpress 🇫🇷🇧🇪, SwitchBot, GeekBuying, GamsGo. Cliquez sur le code pour le copier.</p>
   </div>
@@ -800,49 +800,11 @@
 <!-- INSTALL BANNER -->
 <div class="install-banner" id="installBanner">
   <div class="install-banner-text">
-    <div class="install-banner-title" id="installBanner-title">📲 Installer l'app</div>
-    <div class="install-banner-sub" id="installBanner-sub">Accès rapide depuis votre bureau</div>
+    <div class="install-banner-title">📲 Installer l'app</div>
+    <div class="install-banner-sub">Accès rapide depuis votre bureau</div>
   </div>
   <button class="install-banner-btn" id="installBtn">Installer</button>
   <span class="install-banner-close" onclick="dismissInstall()">✕</span>
-</div>
-
-<!-- POPUP INSTALLATION iOS -->
-<div id="ios-install-popup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:flex-end;justify-content:center">
-  <div style="background:#1c1c1e;border-radius:16px 16px 0 0;padding:24px 20px 40px;width:100%;max-width:430px;text-align:center">
-    <div style="width:40px;height:4px;background:#555;border-radius:2px;margin:0 auto 20px"></div>
-    <div style="font-size:28px;margin-bottom:12px">📲</div>
-    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:6px">Installer sur iPhone</div>
-    <div style="font-size:13px;color:#aaa;margin-bottom:24px">Suivez ces étapes dans Safari</div>
-    
-    <div style="display:flex;flex-direction:column;gap:14px;text-align:left;margin-bottom:24px">
-      <div style="display:flex;align-items:center;gap:14px;background:#2c2c2e;border-radius:12px;padding:14px">
-        <div style="font-size:24px">1️⃣</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#fff">Appuyez sur Partager</div>
-          <div style="font-size:12px;color:#aaa">Le bouton ⬆️ en bas de Safari</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:14px;background:#2c2c2e;border-radius:12px;padding:14px">
-        <div style="font-size:24px">2️⃣</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#fff">Sur l'écran d'accueil</div>
-          <div style="font-size:12px;color:#aaa">Faites défiler et appuyez dessus</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:14px;background:#2c2c2e;border-radius:12px;padding:14px">
-        <div style="font-size:24px">3️⃣</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#fff">Appuyez sur Ajouter</div>
-          <div style="font-size:12px;color:#aaa">L'app apparaîtra sur votre bureau</div>
-        </div>
-      </div>
-    </div>
-    
-    <button onclick="document.getElementById('ios-install-popup').style.display='none'" style="background:#1a7aff;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:15px;font-weight:700;cursor:pointer">
-      J'ai compris ✓
-    </button>
-  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -878,56 +840,33 @@ let articles = [];
 
 async function loadArticlesFromRSS() {
   showLoadingArticles();
+  const FEED = 'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=100';
   const PROXY = 'https://corsproxy.io/?';
-  
-  // WordPress.com limite le RSS à 10 articles par page
-  // On charge plusieurs pages pour avoir l'historique complet
-  let allItems = [];
-  let page = 1;
-  let hasMore = true;
+  const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
 
-  while (hasMore && page <= 10) {
-    try {
-      const FEED = 'https://dingodoronetech.wordpress.com/feed/?paged=' + page;
-      const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
-      const res = await fetch(URL);
-      if (!res.ok) break;
-      const data = await res.json();
-      if (!data.items || data.items.length === 0) {
-        hasMore = false;
-        break;
-      }
-      allItems = allItems.concat(data.items);
-      if (data.items.length < 10) hasMore = false;
-      page++;
-    } catch(e) { break; }
-  }
-
-  if (allItems.length > 0) {
-    // Dédoublonner par URL
-    const seen = new Set();
-    allItems = allItems.filter(item => {
-      if (seen.has(item.url)) return false;
-      seen.add(item.url);
-      return true;
-    });
-
-    articles = allItems.map(item => {
-      const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
-      const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
-      return {
-        title: item.title || 'Sans titre',
-        date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
-        tag: 'Article',
-        excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
-        url: item.url,
-        img: img
-      };
-    });
-    renderArticles();
-  } else {
-    showArticleError();
-  }
+  try {
+    const res = await fetch(URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.items && data.items.length > 0) {
+      articles = data.items.map(item => {
+        // Extract first image from content_html
+        const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
+        const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
+        return {
+          title: item.title || 'Sans titre',
+          date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+          tag: 'Article',
+          excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
+          url: item.url,
+          img: img
+        };
+      });
+      renderArticles();
+      return;
+    }
+  } catch(e) {}
+  showArticleError();
 }
 
 function showLoadingArticles() {
@@ -945,49 +884,40 @@ function showArticleError() {
 let articlesShown = 10;
 
 function renderArticles() {
-  articlesShown = 10;
   document.getElementById('home-articles').innerHTML = articles.slice(0, 3).map(articleCard).join('');
   document.getElementById('all-articles').innerHTML = articles.slice(0, articlesShown).map(articleCard).join('');
-  updateLoadMoreBtn();
-}
-
-function updateLoadMoreBtn() {
   const btn = document.getElementById('load-more-container');
-  if (articles.length > articlesShown) {
-    btn.style.display = 'block';
-    btn.querySelector('button').textContent = 'Charger plus d\'articles ↓ (' + (articles.length - articlesShown) + ' restants)';
-  } else {
-    btn.style.display = 'none';
-  }
+  btn.style.display = articles.length > articlesShown ? 'block' : 'none';
 }
 
 function loadMoreArticles() {
-  articlesShown = Math.min(articlesShown + 10, articles.length);
+  articlesShown += 10;
   document.getElementById('all-articles').innerHTML = articles.slice(0, articlesShown).map(articleCard).join('');
-  updateLoadMoreBtn();
+  const btn = document.getElementById('load-more-container');
+  btn.style.display = articles.length > articlesShown ? 'block' : 'none';
 }
 
 const promos = [
-  // AliExpress France - 01/04 au 07/04/2026
-  { code: "CDFR02",  brand: "AliExpress 🇫🇷", desc: "2€ de remise dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR04",  brand: "AliExpress 🇫🇷", desc: "4€ de remise dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR07",  brand: "AliExpress 🇫🇷", desc: "7€ de remise dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR09",  brand: "AliExpress 🇫🇷", desc: "9€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR13",  brand: "AliExpress 🇫🇷", desc: "13€ de remise dès 99€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR20",  brand: "AliExpress 🇫🇷", desc: "20€ de remise dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR25",  brand: "AliExpress 🇫🇷", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR40",  brand: "AliExpress 🇫🇷", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR55",  brand: "AliExpress 🇫🇷", desc: "55€ de remise dès 459€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  // AliExpress Belgique - 01/04 au 07/04/2026
-  { code: "VIOFUN02", brand: "AliExpress 🇧🇪", desc: "2€ de remise dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN04", brand: "AliExpress 🇧🇪", desc: "4€ de remise dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN07", brand: "AliExpress 🇧🇪", desc: "7€ de remise dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN09", brand: "AliExpress 🇧🇪", desc: "9€ de remise dès 69€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN13", brand: "AliExpress 🇧🇪", desc: "13€ de remise dès 99€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN20", brand: "AliExpress 🇧🇪", desc: "20€ de remise dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN25", brand: "AliExpress 🇧🇪", desc: "25€ de remise dès 209€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN40", brand: "AliExpress 🇧🇪", desc: "40€ de remise dès 329€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOFUN55", brand: "AliExpress 🇧🇪", desc: "55€ de remise dès 459€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress France - à partir du 13/04/2026
+  { code: "SRFR02", brand: "AliExpress 🇫🇷", desc: "2€ dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR04", brand: "AliExpress 🇫🇷", desc: "4€ dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR07", brand: "AliExpress 🇫🇷", desc: "7€ dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR10", brand: "AliExpress 🇫🇷", desc: "10€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR15", brand: "AliExpress 🇫🇷", desc: "15€ dès 109€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR20", brand: "AliExpress 🇫🇷", desc: "20€ dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR30", brand: "AliExpress 🇫🇷", desc: "30€ dès 249€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR45", brand: "AliExpress 🇫🇷", desc: "45€ dès 369€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SRFR60", brand: "AliExpress 🇫🇷", desc: "60€ dès 499€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress Belgique - à partir du 13/04/2026
+  { code: "SR02VIO", brand: "AliExpress 🇧🇪", desc: "2€ dès 15€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR04VIO", brand: "AliExpress 🇧🇪", desc: "4€ dès 29€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR07VIO", brand: "AliExpress 🇧🇪", desc: "7€ dès 49€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR10VIO", brand: "AliExpress 🇧🇪", desc: "10€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR15VIO", brand: "AliExpress 🇧🇪", desc: "15€ dès 109€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR20VIO", brand: "AliExpress 🇧🇪", desc: "20€ dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR30VIO", brand: "AliExpress 🇧🇪", desc: "30€ dès 249€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR45VIO", brand: "AliExpress 🇧🇪", desc: "45€ dès 369€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "SR60VIO", brand: "AliExpress 🇧🇪", desc: "60€ dès 499€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
   // SwitchBot
   { code: "10UPX1K7ODVGTO", brand: "SwitchBot Amazon", desc: "10% de réduction site officiel", url: "https://amzn.to/3nsAaWu" },
   { code: "10Dingodor", brand: "SwitchBot Officiel", desc: "Code promo exclusif Dingodor", url: "https://www.switch-bot.com/?sca_ref=1102794.rW5weNSejk" },
