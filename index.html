@@ -141,6 +141,63 @@
   .section { display: none; padding: 16px 18px 100px; }
   .section.active { display: block; }
 
+  /* CAMERA WIZARD */
+  .cam-progress { display:flex; gap:6px; margin-bottom:18px; }
+  .cam-progress span { flex:1; height:3px; border-radius:3px; background:var(--bg3); }
+  .cam-progress span.done { background:var(--accent); }
+  .cam-question { font-family:'Syne', sans-serif; font-size:17px; font-weight:700; color:var(--text); margin-bottom:16px; line-height:1.3; }
+  .cam-options { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .cam-option {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cam-option:active { background: var(--bg3); transform: scale(0.99); border-color: var(--accent); }
+  .cam-option-sub { display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:2px; }
+  .cam-back {
+    background: none; border: none; color: var(--muted); font-size: 12px;
+    cursor: pointer; padding: 4px 0; margin-bottom: 14px; display:flex; align-items:center; gap:4px;
+  }
+  .cam-result-card {
+    background: var(--bg2);
+    border: 1px solid rgba(26,122,255,0.3);
+    border-radius: var(--card-r);
+    padding: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .cam-result-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    background: rgba(26,122,255,0.15); border: 1px solid rgba(26,122,255,0.3);
+    border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--accent2);
+    font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .cam-result-title { font-family:'Syne', sans-serif; font-size:19px; font-weight:800; color:var(--text); margin-bottom:8px; line-height:1.25; }
+  .cam-result-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:14px; }
+  .cam-result-specs { list-style:none; margin-bottom:18px; }
+  .cam-result-specs li { font-size:13px; color:var(--text); padding:6px 0; border-bottom:1px solid var(--border); display:flex; gap:8px; }
+  .cam-result-specs li:last-child { border-bottom:none; }
+  .cam-result-specs li::before { content:'✓'; color:var(--accent2); font-weight:700; flex-shrink:0; }
+  .cam-buy-row { display:flex; gap:10px; margin-bottom:12px; }
+  .cam-buy-btn {
+    flex:1; text-align:center; text-decoration:none; padding:13px 10px; border-radius:12px;
+    font-size:13px; font-weight:600; background: linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff;
+  }
+  .cam-buy-btn:active { opacity:0.85; }
+  .cam-restart-btn {
+    display:block; width:100%; text-align:center; background:transparent; border:1px solid var(--border);
+    color:var(--muted); font-size:13px; font-weight:500; padding:11px; border-radius:12px; cursor:pointer;
+  }
+  .cam-restart-btn:active { background:var(--bg3); }
+  .cam-note { font-size:11px; color:var(--muted); text-align:center; margin-top:10px; line-height:1.5; }
+
   /* HERO BANNER */
   .hero {
     background: linear-gradient(135deg, #000f1a 0%, #001a2e 50%, #0c0c0c 100%);
@@ -668,6 +725,7 @@
   <button class="tab" onclick="switchTab('articles', this)">Articles</button>
   <button class="tab" onclick="switchTab('promos', this)">Codes promo</button>
   <button class="tab" onclick="switchTab('reseaux', this)">Réseaux</button>
+  <button class="tab" onclick="switchTab('camera', this)">Caméras</button>
   <button class="tab" onclick="switchTab('about', this)">À propos</button>
 </div>
 
@@ -774,6 +832,16 @@
 <div class="section" id="sec-reseaux">
   <div class="section-title">Me retrouver sur</div>
   <div class="socials-grid" id="all-socials"></div>
+</div>
+
+<!-- SECTION CAMÉRAS -->
+<div class="section" id="sec-camera">
+  <div class="hero" style="margin-bottom:20px">
+    <div class="hero-label">📹 Guide d'achat</div>
+    <h2>Quelle caméra de surveillance choisir ?</h2>
+    <p>Réponds à quelques questions, on te recommande le bon modèle selon ton installation (hauteur, distance, WiFi, 4G, solaire...).</p>
+  </div>
+  <div id="cam-wizard"></div>
 </div>
 
 <!-- SECTION ABOUT -->
@@ -1038,6 +1106,363 @@ function switchTab(id, el) {
   const navEl = document.getElementById('nav-' + id);
   if (navEl) navEl.classList.add('active');
 }
+
+// === GUIDE CAMÉRAS DE SURVEILLANCE ===
+const CAM_TAG_FR = 'dingodor-21';
+const CAM_TAG_BE = 'dingodor00e-21';
+
+function camLinkFR(asin) { return `https://www.amazon.fr/dp/${asin}?tag=${CAM_TAG_FR}`; }
+function camLinkBE(asin) { return `https://www.amazon.com.be/dp/${asin}?tag=${CAM_TAG_BE}`; }
+
+const CAM_STEPS = {
+  start: {
+    question: "Où sera installée la caméra ?",
+    options: [
+      { value: 'interieur', label: "À l'intérieur", sub: "Salon, chambre, une pièce à vivre" },
+      { value: 'porte', label: "À la porte d'entrée", sub: "Voir qui sonne, surveiller les colis à la porte" },
+      { value: 'exterieur', label: "À l'extérieur", sub: "Jardin, piscine, allée, façade, parking..." }
+    ]
+  },
+  usage_interieur: {
+    question: "Que veux-tu surveiller principalement à l'intérieur ?",
+    options: [
+      { value: 'salon', label: "Le salon / une pièce à vivre", sub: "Cambriolage, activité générale" },
+      { value: 'animaux', label: "Mes animaux domestiques", sub: "Les observer et leur parler à distance" }
+    ]
+  },
+  usage_exterieur: {
+    question: "Que veux-tu surveiller en priorité à l'extérieur ?",
+    options: [
+      { value: 'jardin', label: "Le jardin", sub: "Intrusions, allées et venues" },
+      { value: 'piscine', label: "La piscine", sub: "Zone de baignade" },
+      { value: 'voiture', label: "Ma voiture / l'allée / le parking", sub: "Rayures, vols, vandalisme" },
+      { value: 'colis', label: "La zone de livraison", sub: "Voir arriver les livreurs de loin" },
+      { value: 'facade', label: "La façade / l'entrée générale", sub: "Vue d'ensemble de la propriété" }
+    ]
+  },
+  power: {
+    question: "As-tu une prise électrique ou un câble réseau (Ethernet) à cet endroit précis ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Une prise secteur ou une prise réseau est accessible" },
+      { value: 'non', label: "Non", sub: "L'endroit est isolé, sans électricité ni câble" }
+    ]
+  },
+  multi: {
+    question: "Combien de caméras veux-tu installer ?",
+    options: [
+      { value: 'une', label: "Une seule caméra" },
+      { value: 'plusieurs', label: "Plusieurs caméras", sub: "Système complet avec enregistreur pour toute une propriété" }
+    ]
+  },
+  distance: {
+    question: "Dois-tu couvrir une grande distance ou une hauteur importante ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Portail au fond du jardin, grande façade, lire une plaque d'immatriculation de loin" },
+      { value: 'non', label: "Non", sub: "Une zone proche et limitée suffit" }
+    ]
+  },
+  wifi: {
+    question: "Le WiFi capte-t-il correctement à cet endroit ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Le signal WiFi de la maison arrive jusque-là" },
+      { value: 'non', label: "Non", sub: "Aucun réseau : terrain isolé, chalet, ferme, chantier..." }
+    ]
+  },
+  budget_indoor: {
+    question: "Quel budget pour cette caméra ?",
+    options: [
+      { value: 'eco', label: "Petit budget", sub: "Modèle simple : image 1080p, détection de mouvement, l'essentiel" },
+      { value: 'standard', label: "Peu importe le prix", sub: "Je veux le meilleur : image 2K, rotation fluide, meilleure détection" }
+    ]
+  },
+  budget_poe: {
+    question: "Quel budget pour cette caméra ?",
+    options: [
+      { value: 'eco', label: "Petit budget", sub: "Modèle simple en 5MP, vision nocturne classique" },
+      { value: 'standard', label: "Peu importe le prix", sub: "Je veux le meilleur : 4K, détection personne/véhicule/animal" }
+    ]
+  },
+  pets: {
+    question: "As-tu des animaux domestiques (chien, chat...) qui pourraient passer devant la caméra ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Ils bougent régulièrement dans la zone filmée" },
+      { value: 'non', label: "Non", sub: "Pas d'animaux à filtrer" }
+    ]
+  },
+  retention: {
+    question: "Combien de temps veux-tu pouvoir revoir tes enregistrements en arrière ?",
+    options: [
+      { value: 'court', label: "Une semaine ou moins", sub: "Consultation rapide après un événement récent" },
+      { value: 'moyen', label: "Plusieurs semaines à quelques mois", sub: "Retrouver un événement même après un moment" },
+      { value: 'long', label: "Le plus longtemps possible", sub: "Archivage sur la durée" }
+    ]
+  },
+  storage: {
+    question: "Quel type de stockage préfères-tu pour les vidéos ?",
+    options: [
+      { value: 'sd', label: "Carte microSD", sub: "Stockage local, pas d'abonnement, mais coût à l'achat de la carte" },
+      { value: 'cloud', label: "Cloud (abonnement)", sub: "Pas de carte à acheter, mais coût récurrent chaque mois" },
+      { value: 'peu_importe', label: "Peu importe", sub: "Montre-moi les deux options" }
+    ]
+  }
+};
+
+// Chaque profil : specs vérifiées + vision nocturne réelle + détection animaux + carte microSD conseillée
+const CAM_PROFILES = {
+  tapo_budget: {
+    badge: "Intérieur · WiFi · Petit budget",
+    title: "TP-Link Tapo C200",
+    desc: "Le modèle d'entrée de gamme le plus vendu pour surveiller une pièce : simple, fiable, très abordable.",
+    specs: ["Résolution 1080p, rotation 360°/114°", "Vision nocturne infrarouge (noir et blanc) jusqu'à 9-12m", "Détection de mouvement et de personnes (pas de reconnaissance animaux)", "Stockage carte microSD jusqu'à 128 Go"],
+    asin: 'B07XR2NWZC',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: '128 Go',
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  tapo_premium: {
+    badge: "Intérieur · WiFi",
+    title: "TP-Link Tapo C210",
+    desc: "Caméra WiFi intérieure motorisée à 360°, meilleure image et meilleur suivi que le modèle d'entrée de gamme, idéale pour surveiller une pièce complète, un bébé ou un animal.",
+    specs: ["Résolution 2K, vision nocturne infrarouge jusqu'à 9-10m", "Rotation 360° horizontale, suivi de mouvement", "Détection de personnes et pleurs de bébé (pas de reconnaissance animaux)", "Stockage carte microSD jusqu'à 512 Go (pas d'abonnement obligatoire)"],
+    asin: 'B095CLQ1PT',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: '512 Go',
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  doorbell: {
+    badge: "Porte d'entrée · WiFi",
+    title: "Reolink Video Doorbell WiFi",
+    desc: "Sonnette connectée avec caméra, pensée pour surveiller l'entrée : visiteurs, livraisons, tentatives d'intrusion.",
+    specs: ["Détection de personnes/véhicules/colis, audio bidirectionnel", "Vision nocturne infrarouge, étanche (usage extérieur)", "Pas de reconnaissance spécifique des animaux", "Stockage carte microSD jusqu'à 256 Go (pas d'abonnement cloud obligatoire)"],
+    asin: 'B0B4KBMDD3',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: '256 Go',
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  poe_budget: {
+    badge: "Extérieur filaire · PoE · Petit budget",
+    title: "Reolink RLC-510A (PoE)",
+    desc: "Caméra filaire extérieure simple et fiable en 5MP, un seul câble réseau pour l'alimentation et la vidéo, sans WiFi à configurer.",
+    specs: ["5MP, vision nocturne infrarouge jusqu'à 30m", "Détection personne/véhicule (pas de reconnaissance animaux)", "Étanche IP67, time-lapse", "Stockage carte microSD (jusqu'à 256 Go) ou NVR/FTP"],
+    asin: 'B08F71V8SH',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: '256 Go',
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
+  poe_premium: {
+    badge: "Extérieur filaire · PoE",
+    title: "Reolink RLC-810A (PoE)",
+    desc: "Caméra filaire extérieure en 4K, meilleure image et meilleure détection que le modèle d'entrée de gamme : un seul câble réseau pour l'alimentation et la vidéo.",
+    specs: ["4K, détection personne/véhicule/animal", "Vision nocturne infrarouge jusqu'à 30m, étanche IP67", "Stockage carte microSD jusqu'à 512 Go, ou NVR/FTP", "Alimentation et données par câble Ethernet (PoE)"],
+    asin: 'B08F7C37NZ',
+    nightVision: 'ir',
+    petDetection: true,
+    maxSD: '512 Go',
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
+  zoom: {
+    badge: "Extérieur filaire · Zoom 16X",
+    title: "Reolink RLC-823A 16X (PTZ)",
+    desc: "Caméra motorisée avec zoom optique 16X, parfaite installée en hauteur pour couvrir un grand terrain ou surveiller un portail éloigné avec des détails nets.",
+    specs: ["Zoom optique 16X, panoramique 360° + inclinaison 90°", "Suivi automatique des personnes/véhicules/animaux", "Vision nocturne infrarouge jusqu'à 80m", "Alimentation et données par câble Ethernet (PoE)"],
+    asin: 'B0BL3HYR3L',
+    nightVision: 'ir',
+    petDetection: true,
+    maxSD: '256 Go',
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
+  kit: {
+    badge: "Système complet · Kit PoE + NVR",
+    title: "Reolink RLK8-800B4",
+    desc: "Kit complet pour sécuriser toute une propriété : 4 caméras filaires PoE 8MP reliées à un enregistreur NVR avec disque dur 2 To pour un enregistrement continu 24/7.",
+    specs: ["4 caméras 4K/8MP + NVR 8 canaux", "Disque dur 2 To intégré (extensible jusqu'à 16 To)", "Enregistrement continu 24/7, détection personne/véhicule (pas de reconnaissance animaux)", "Câblage PoE, installation type vidéosurveillance pro"],
+    asin: 'B07LBFJDQW',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: null,
+    sdAsin: null
+  },
+  solar_wifi: {
+    badge: "100% sans fil · WiFi + Solaire",
+    title: "Reolink Argus 3 Pro + Panneau solaire",
+    desc: "Caméra entièrement sans fil sur batterie, rechargée en continu par un panneau solaire : aucun câble, installation libre n'importe où avec du WiFi.",
+    specs: ["Connexion WiFi 2,4/5GHz, aucun câblage requis", "Batterie + panneau solaire fourni = autonomie continue", "Détection personne/véhicule/animal, vision nocturne EN COULEUR", "Stockage carte microSD (jusqu'à 512 Go) ou cloud (au choix)"],
+    asin: 'B08NDM75ZY',
+    nightVision: 'color',
+    petDetection: true,
+    maxSD: '512 Go',
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  solar_4g: {
+    badge: "100% autonome · 4G + Solaire",
+    title: "Reolink Go Plus + Panneau solaire",
+    desc: "Caméra cellulaire fonctionnant avec une carte SIM 4G/LTE : ni WiFi, ni électricité nécessaires. Idéale pour un terrain isolé, un chalet, une ferme ou un chantier.",
+    specs: ["Connexion 4G/LTE via carte SIM (non incluse, abonnement data requis)", "Batterie + panneau solaire fourni = fonctionnement continu", "Détection personne/véhicule (pas de reconnaissance animaux confirmée), vision nocturne infrarouge", "Stockage carte microSD jusqu'à 128 Go"],
+    asin: 'B09DPQBCKS',
+    nightVision: 'ir',
+    petDetection: false,
+    maxSD: '128 Go',
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  }
+};
+
+// Petits conseils selon l'usage prioritaire choisi (jardin, piscine, voiture, colis, façade, salon, animaux)
+const CAM_USAGE_TIPS = {
+  piscine: `⚠️ Autour d'une piscine avec des enfants : une caméra ne remplace jamais une surveillance directe ni une barrière/alarme conforme aux normes en vigueur. Elle est un complément, pas une solution de sécurité à elle seule.`,
+  jardin: `🌿 Astuce : dans un jardin, définis des zones de détection précises dans l'appli pour éviter les fausses alertes dues aux arbres, à la pluie ou aux insectes.`,
+  voiture: `🚗 Astuce : pour lire une plaque d'immatriculation la nuit, la vision infrarouge suffit à distinguer les contours mais pas les couleurs. Si la voiture est garée loin, privilégie une caméra avec zoom optique.`,
+  colis: `📦 Astuce : place la caméra avec une vue dégagée sur le point de dépose des colis ; la détection de personne suffit à te prévenir dès qu'un livreur arrive.`,
+  facade: '',
+  salon: `🏠 Astuce : installe la caméra en hauteur, dans un angle de la pièce, pour couvrir un maximum de surface.`,
+  animaux: `🐾 Astuce : la rotation à 360° et l'audio bidirectionnel permettent de suivre tes animaux dans la pièce et de leur parler à distance.`
+};
+
+let camAnswers = {};
+
+// Détermine soit la prochaine étape de catégorie (string), soit le profil final ({profile:'x'})
+function camCategoryStep(a) {
+  if (!a.place) return 'start';
+  if (a.place === 'porte') return { profile: 'doorbell' };
+  if (a.place === 'interieur') {
+    if (!a.usage) return 'usage_interieur';
+    if (!a.budget) return 'budget_indoor';
+    return { profile: a.budget === 'eco' ? 'tapo_budget' : 'tapo_premium' };
+  }
+  // exterieur
+  if (!a.usage) return 'usage_exterieur';
+  if (!a.power) return 'power';
+  if (a.power === 'non') {
+    if (!a.wifi) return 'wifi';
+    return { profile: a.wifi === 'oui' ? 'solar_wifi' : 'solar_4g' };
+  }
+  if (!a.multi) return 'multi';
+  if (a.multi === 'plusieurs') return { profile: 'kit' };
+  if (!a.distance) return 'distance';
+  if (a.distance === 'oui') return { profile: 'zoom' };
+  if (!a.budget) return 'budget_poe';
+  return { profile: a.budget === 'eco' ? 'poe_budget' : 'poe_premium' };
+}
+
+// Ajoute les questions transverses (animaux, historique, stockage) une fois la catégorie déterminée
+function camResolve(a) {
+  const cat = camCategoryStep(a);
+  if (typeof cat === 'string') return cat;
+  const profile = cat.profile;
+  if (!a.pets) return 'pets';
+  if (!a.retention) return 'retention';
+  if (profile !== 'kit' && !a.storage) return 'storage';
+  return { profile };
+}
+
+const CAM_STEP_KEY_MAP = {
+  start: 'place', usage_interieur: 'usage', usage_exterieur: 'usage',
+  power: 'power', multi: 'multi', distance: 'distance', wifi: 'wifi',
+  budget_indoor: 'budget', budget_poe: 'budget', pets: 'pets',
+  retention: 'retention', storage: 'storage'
+};
+
+function camAnswerStep(key, value) {
+  camAnswers[key] = value;
+  camRenderWizard();
+}
+
+function camRestart() {
+  camAnswers = {};
+  camRenderWizard();
+}
+
+function camStorageBlock(p, storageAnswer, retentionAnswer) {
+  if (!storageAnswer) return '';
+  const longNote = retentionAnswer === 'long'
+    ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">Pour un archivage long, la carte s'écrase en boucle une fois pleine : pense à choisir la plus grande capacité proposée sur la page (jusqu'à ${p.maxSD}) si tu veux garder plusieurs mois sans y retoucher.</div>`
+    : '';
+  const sdBlock = p.sdAsin ? `
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">📦 Carte microSD conseillée pour ce modèle (max ${p.maxSD}) :</div>
+      <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:8px">${p.sdLabel}</div>
+      <div class="cam-buy-row">
+        <a class="cam-buy-btn" href="${camLinkFR(p.sdAsin)}" target="_blank" rel="noopener" style="background:var(--bg3);color:var(--text)">🇫🇷 Amazon.fr</a>
+        <a class="cam-buy-btn" href="${camLinkBE(p.sdAsin)}" target="_blank" rel="noopener" style="background:var(--bg3);color:var(--text)">🇧🇪 Amazon.be</a>
+      </div>
+      ${longNote}
+    </div>` : `
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">
+      Ce kit inclut déjà un disque dur 2 To dans l'enregistreur : avec 4 caméras, ça représente généralement plusieurs semaines à quelques mois d'enregistrement continu selon la résolution (extensible jusqu'à 16 To pour archiver encore plus longtemps).
+    </div>`;
+  const cloudCapNote = (retentionAnswer === 'moyen' || retentionAnswer === 'long')
+    ? ` Attention : les abonnements cloud standards ne conservent généralement que 7 à 30 jours glissants — au-delà, les plus anciens enregistrements sont automatiquement supprimés, sauf à prendre un abonnement premium plus cher.`
+    : '';
+  const cloudNote = `
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.6">
+      ☁️ Le cloud évite d'acheter une carte, mais implique un abonnement mensuel qui varie selon le fabricant (Reolink Cloud, Tapo Care...).${cloudCapNote} Les cartes microSD ont pas mal augmenté ces derniers temps (tensions sur les composants mémoire), donc ça vaut le coup de comparer le prix actuel de l'abonnement sur le site du fabricant avant de choisir.
+    </div>`;
+  if (storageAnswer === 'sd') return sdBlock;
+  if (storageAnswer === 'cloud') return p.sdAsin ? cloudNote : sdBlock;
+  return sdBlock + cloudNote; // peu_importe : les deux
+}
+
+function camRenderWizard() {
+  const container = document.getElementById('cam-wizard');
+  if (!container) return;
+  const result = camResolve(camAnswers);
+
+  if (typeof result === 'object') {
+    const p = CAM_PROFILES[result.profile];
+    const nvNote = p.nightVision === 'color'
+      ? `<li style="color:var(--accent2)">✓ Vision nocturne EN COULEUR (avec projecteur)</li>`
+      : `<li style="color:var(--muted)">ℹ️ Vision nocturne infrarouge classique (noir et blanc) — pas de version couleur vérifiée pour ce besoin précis</li>`;
+    const petNote = camAnswers.pets === 'oui'
+      ? (p.petDetection
+          ? `<li style="color:var(--accent2)">✓ Fait la différence entre humains et animaux : moins de fausses alertes</li>`
+          : `<li style="color:#ff8a65">⚠️ Ne distingue pas les animaux : tu risques des fausses alertes si tes animaux passent devant</li>`)
+      : '';
+    const usageTip = CAM_USAGE_TIPS[camAnswers.usage] || '';
+    container.innerHTML = `
+      <div class="cam-result-card">
+        <div class="cam-result-badge">${p.badge}</div>
+        <div class="cam-result-title">${p.title}</div>
+        <div class="cam-result-desc">${p.desc}</div>
+        <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${petNote}</ul>
+        ${usageTip ? `<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">${usageTip}</div>` : ''}
+        <div class="cam-buy-row">
+          <a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
+          <a class="cam-buy-btn" href="${camLinkBE(p.asin)}" target="_blank" rel="noopener">🇧🇪 Voir sur Amazon.be</a>
+        </div>
+        ${camStorageBlock(p, camAnswers.storage, camAnswers.retention)}
+      </div>
+      <button class="cam-restart-btn" onclick="camRestart()" style="margin-top:12px">↺ Recommencer le guide</button>
+      <div class="cam-note">Liens affiliés Amazon — le prix reste le même pour toi, ça soutient le blog 🙏</div>
+    `;
+    return;
+  }
+
+  const step = CAM_STEPS[result];
+  const answeredCount = Object.keys(camAnswers).length;
+  const totalSteps = 8; // approx depth for progress bar
+  let dots = '';
+  for (let i = 0; i < totalSteps; i++) {
+    dots += `<span class="${i < answeredCount ? 'done' : ''}"></span>`;
+  }
+
+  container.innerHTML = `
+    <div class="cam-progress">${dots}</div>
+    ${answeredCount > 0 ? `<button class="cam-back" onclick="camRestart()">↺ Recommencer</button>` : ''}
+    <div class="cam-question">${step.question}</div>
+    <div class="cam-options">
+      ${step.options.map(o => `
+        <button class="cam-option" onclick="camAnswerStep('${CAM_STEP_KEY_MAP[result]}', '${o.value}')">
+          ${o.label}${o.sub ? `<span class="cam-option-sub">${o.sub}</span>` : ''}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+camRenderWizard();
 
 // === SEARCH ===
 function openSearch() {
