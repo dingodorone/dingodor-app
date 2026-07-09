@@ -1123,6 +1123,13 @@ const CAM_STEPS = {
       { value: 'les_deux', label: "Intérieur ET extérieur", sub: "Système complet pour toute la propriété" }
     ]
   },
+  system_scale: {
+    question: "Combien de caméras au total, en comptant l'intérieur et l'extérieur ?",
+    options: [
+      { value: 'petit', label: "2 à 3 caméras", sub: "Une pièce intérieure et une ou deux zones extérieures, chaque caméra autonome dans l'appli" },
+      { value: 'grand', label: "4 caméras ou plus", sub: "Système complet avec enregistreur (NVR) et disque dur, plus simple à gérer à cette échelle" }
+    ]
+  },
   usage_interieur: {
     question: "Que veux-tu surveiller principalement à l'intérieur ?",
     options: [
@@ -1760,13 +1767,17 @@ let camAnswers = {};
 // Détermine soit la prochaine étape de catégorie (string), soit la catégorie de base ({baseCategory:'x'})
 function camCategoryStep(a) {
   if (!a.scope) return 'scope';
+  if (a.scope === 'les_deux') {
+    if (!a.system_scale) return 'system_scale';
+    if (a.system_scale === 'grand') return { baseCategory: 'kit' };
+  }
   const effectivePlace = (a.scope === 'interieur') ? 'interieur' : 'exterieur';
   if (effectivePlace === 'interieur') {
     if (!a.usage) return 'usage_interieur';
     if (!a.motorized) return 'motorized_indoor';
     return { baseCategory: a.motorized === 'fixe' ? 'interieur_fixe' : 'interieur_motorisee' };
   }
-  // exterieur (ou les_deux, on traite d'abord l'extérieur, le plus structurant)
+  // exterieur (ou les_deux avec petit système, on traite d'abord l'extérieur, le plus structurant)
   if (!a.usage) return 'usage_exterieur';
   if (a.usage === 'porte') {
     if (!a.doorbell_power) return 'doorbell_power';
@@ -1813,7 +1824,7 @@ function camResolve(a) {
 }
 
 const CAM_STEP_KEY_MAP = {
-  scope: 'scope', usage_interieur: 'usage', usage_exterieur: 'usage',
+  scope: 'scope', system_scale: 'system_scale', usage_interieur: 'usage', usage_exterieur: 'usage',
   power: 'power', multi: 'multi', motorized_indoor: 'motorized', motorized_poe: 'motorized', motorized_solar: 'motorized',
   wifi: 'wifi', budget: 'budget', nightvision: 'nv', tracking_detect: 'tracking', animal_detect: 'animal', package_detect: 'package', color_pref: 'color',
   siren_detect: 'siren', intercom_detect: 'intercom',
@@ -2032,11 +2043,34 @@ function camRenderWizard() {
           ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Les caméras 4G/LTE ne sont compatibles avec Home Assistant chez aucun fabricant que j'ai vérifié, même avec un hub. Le vrai compromis : soit tu apportes du WiFi à cet endroit (répéteur ou point d'accès) pour pouvoir utiliser une caméra WiFi Reolink compatible à la place, soit tu gardes cette caméra 4G mais tu la pilotes uniquement via l'appli Reolink, sans intégration Home Assistant pour celle-ci.</div>`
           : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Aucune caméra de cette catégorie n'a de compatibilité Home Assistant confirmée, même avec un accessoire. Le vrai compromis : si Home Assistant est indispensable, oriente-toi plutôt vers une caméra filaire PoE (comme les Reolink RLC-xxx) ou une caméra WiFi/batterie Reolink avec Home Hub, qui elles sont confirmées compatibles. Sinon, cette caméra reste utilisable normalement via son appli propre, juste pas dans Home Assistant.</div>`)
       : '';
-    const bothScopeBlock = camAnswers.scope === 'les_deux' ? `
-      <div class="cam-note" style="margin-bottom:14px">🏠🌳 Tu as choisi intérieur ET extérieur. Voici d'abord la recommandation extérieure, la plus structurante, puis un complément intérieur par défaut.</div>
-      ${camRenderCard(CAM_PROFILES['tapo_premium'], '🏠 Complément intérieur, choix par défaut', null)}
-      <div class="cam-note" style="margin-bottom:14px">Ce complément intérieur est un choix polyvalent standard. Pour l'affiner selon ton budget, fixe ou motorisée, ou tes animaux, relance le guide en choisissant Intérieur uniquement.</div>
-    ` : '';
+    let bothScopeBlock = '';
+    if (camAnswers.scope === 'les_deux') {
+      if (camAnswers.system_scale === 'grand') {
+        bothScopeBlock = `
+      <div class="cam-note" style="margin-bottom:14px">🏠🌳 Pour 4 caméras ou plus entre intérieur et extérieur, un système avec enregistreur (NVR) est la solution la plus simple à gérer : tu répartis les caméras du kit entre les pièces et l'extérieur, tout arrive dans une seule appli et un seul disque dur.</div>
+    `;
+      } else {
+        const extBrand = CAM_PROFILES[profileKeys[0]].brand;
+        let complementKey = 'tapo_premium';
+        let complementNote = '';
+        if (extBrand === 'TP-Link Tapo') {
+          complementKey = 'tapo_premium';
+        } else {
+          const indoorAlt = (CAM_FAMILY_BRAND_ALT.interieur || {})[extBrand];
+          if (indoorAlt) {
+            complementKey = indoorAlt.pick({ motorized: 'motorisee', budget: 'peu_importe' }, 'interieur_motorisee');
+            complementNote = `Même marque (${extBrand}) que ta caméra extérieure, une seule appli pour tout gérer.`;
+          } else {
+            complementNote = `${extBrand} n'a pas de caméra intérieure vérifiée dans ce guide, voici Tapo comme complément neutre, il te faudra une appli en plus pour celle-ci.`;
+          }
+        }
+        bothScopeBlock = `
+      <div class="cam-note" style="margin-bottom:14px">🏠🌳 Tu as choisi intérieur ET extérieur. Voici d'abord la recommandation extérieure, la plus structurante, puis un complément intérieur.</div>
+      ${camRenderCard(CAM_PROFILES[complementKey], '🏠 Complément intérieur', null, complementNote)}
+      <div class="cam-note" style="margin-bottom:14px">Pour affiner ce complément intérieur (budget, fixe ou motorisée, animaux), relance le guide en choisissant Intérieur uniquement.</div>
+    `;
+      }
+    }
     container.innerHTML = `
       ${compareNote}
       ${brandMismatchWarning}
