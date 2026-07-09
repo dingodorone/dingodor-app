@@ -1220,6 +1220,14 @@ const CAM_STEPS = {
       { value: 'peu_importe', label: "Peu importe", sub: "Montre-moi le meilleur choix disponible" }
     ]
   },
+  tracking_detect: {
+    question: "Veux-tu que la caméra suive automatiquement une personne qui se déplace ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "La caméra pivote toute seule pour garder la personne dans le cadre, pas juste pivoter manuellement depuis l'appli" },
+      { value: 'non', label: "Non", sub: "Pivoter manuellement depuis l'appli me suffit" },
+      { value: 'peu_importe', label: "Peu importe" }
+    ]
+  },
   animal_detect: {
     question: "Veux-tu recevoir une notification spécifique quand un animal est détecté ?",
     options: [
@@ -1318,7 +1326,7 @@ const CAM_PROFILES = {
     title: "TP-Link Tapo C210",
     desc: "Caméra WiFi intérieure motorisée à 360°, meilleure image et meilleur suivi que le modèle d'entrée de gamme.",
     specs: ["Résolution 2K, vision nocturne infrarouge jusqu'à 9 à 10m", "Rotation 360° horizontale motorisée, suivi de mouvement", "Détection de personnes et pleurs de bébé", "Stockage carte microSD jusqu'à 512 Go, pas d'abonnement obligatoire", "Appli Tapo, compatible Alexa/Google Assistant"],
-    asin: 'B095CLQ1PT', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true, hasSiren: false, hasIntercom: true,
+    asin: 'B095CLQ1PT', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   switchbot_budget: {
@@ -1334,7 +1342,7 @@ const CAM_PROFILES = {
     title: "SwitchBot Pan/Tilt Cam 2K",
     desc: "Alternative à la Tapo C210 : image 2K, vision nocturne EN COULEUR, rotation 360°/115° motorisée, mode confidentialité physique (l'objectif se cache).",
     specs: ["Résolution 2K, vision nocturne EN COULEUR", "Rotation 360°/115° motorisée, détection de forme humaine, suivi de mouvement", "Mode confidentialité physique, l'objectif se rétracte", "Audio bidirectionnel intégré", "Stockage carte microSD jusqu'à 256 Go ou cloud", "Appli SwitchBot, compatible Alexa/Google Home et Tuya"],
-    asin: 'B0CR3WTRD4', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    asin: 'B0CR3WTRD4', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   switchbot_outdoor: {
@@ -1406,7 +1414,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-823A 16X (PTZ)",
     desc: "Caméra motorisée avec zoom optique 16X, parfaite installée en hauteur pour couvrir un grand terrain ou surveiller un portail éloigné avec des détails nets.",
     specs: ["Zoom optique 16X, panoramique 360° et inclinaison 90°, motorisée avec suivi auto", "Suivi automatique des personnes/véhicules/animaux", "Vision nocturne infrarouge jusqu'à 80m", "Alimentation et données par câble Ethernet (PoE)", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B0BL3HYR3L', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', longRange: true, haCompatible: true, hasSiren: false, hasIntercom: false,
+    asin: 'B0BL3HYR3L', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', longRange: true, haCompatible: true, hasSiren: false, hasIntercom: false, hasAutoTracking: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   zoom_color: {
@@ -1414,7 +1422,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-811A (PoE, zoom couleur)",
     desc: "Bon compromis pour voir loin et en couleur la nuit : zoom optique 5X, moins puissant que la version 16X noir et blanc, avec projecteur intégré.",
     specs: ["Zoom optique 5X, vision nocturne EN COULEUR grâce au projecteur, motorisée", "Détection personne/véhicule, fausses alertes très réduites", "4K, alimentation et données par câble Ethernet (PoE)", "Stockage carte microSD jusqu'à 512 Go ou NVR/FTP", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B0982WVMVC', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', longRange: true, zoomTradeoff: true, haCompatible: true, hasSiren: false, hasIntercom: false,
+    asin: 'B0982WVMVC', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', longRange: true, zoomTradeoff: true, haCompatible: true, hasSiren: false, hasIntercom: false, hasAutoTracking: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   kit: {
@@ -1446,7 +1454,7 @@ const CAM_PROFILES = {
     title: "Reolink Argus PT Ultra + Panneau solaire",
     desc: "Version motorisée de l'Argus 3 Pro : elle pivote à 360° et suit automatiquement les mouvements, en plus de pouvoir basculer entre vision nocturne couleur et infrarouge.",
     specs: ["Rotation 360° et inclinaison motorisées, suivi automatique des mouvements", "Batterie et panneau solaire fournis, WiFi 2,4/5GHz (WiFi 6)", "Vision nocturne EN COULEUR (projecteur) ou infrarouge au choix", "Détection IA locale personne/véhicule/animal, stockage carte microSD jusqu'à 512 Go ou cloud", "Appli Reolink"],
-    asin: 'B0BZD4P25M', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true, hasSiren: false, hasIntercom: true,
+    asin: 'B0BZD4P25M', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   solar_wifi_ezviz: {
@@ -1462,7 +1470,7 @@ const CAM_PROFILES = {
     title: "EZVIZ C6N",
     desc: "Alternative motorisée à la Tapo C210 : rotation 360° horizontale et 55° verticale, vision nocturne intelligente qui ajuste automatiquement l'intensité infrarouge pour éviter la surexposition.",
     specs: ["1080p, rotation 360° horizontale et 55° verticale, motorisée", "Vision nocturne Smart IR (ajustement automatique), détection de mouvement et suivi", "Audio bidirectionnel intégré", "Stockage carte microSD jusqu'à 256 Go, ou cloud EZVIZ en option", "Appli EZVIZ, compatible Alexa"],
-    asin: 'B07W4FMSD9', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    asin: 'B07W4FMSD9', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   ezviz_zoom: {
@@ -1470,7 +1478,7 @@ const CAM_PROFILES = {
     title: "EZVIZ C8c (5MP)",
     desc: "Alternative motorisée à la Reolink RLC-823A : rotation 360° avec suivi automatique et zoom qui se déclenche dès qu'un mouvement humain est détecté, plus rapide qu'un simple mouvement de caméra fixe.",
     specs: ["5MP, rotation 360° horizontale, suivi automatique et zoom lors d'une détection", "Détection IA personne/véhicule, jusqu'à 12 positions préréglées mémorisables", "Vision nocturne EN COULEUR, sirène et projecteurs clignotants (défense active)", "WiFi 2,4/5GHz, portée étendue jusqu'à 220m, option filaire possible", "Stockage carte microSD jusqu'à 512 Go, ou cloud EZVIZ CloudPlay en option"],
-    asin: 'B0CJTWZTMT', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
+    asin: 'B0CJTWZTMT', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   solar_4g: {
@@ -1518,7 +1526,7 @@ const CAM_PROFILES = {
     title: "Aqara Camera Hub G3",
     desc: "Caméra motorisée 2K avec rotation 340°, reconnaissance faciale et de gestes, qui fait aussi office de hub Zigbee. Pensée avant tout pour Apple HomeKit Secure Video.",
     specs: ["2K, rotation Pan/Tilt 340°, reconnaissance de visages et de gestes", "Vision nocturne infrarouge, télécommande infrarouge intégrée pour la TV/clim", "Fait aussi office de hub Zigbee pour d'autres appareils Aqara", "Stockage cloud chiffré inclus gratuitement, ou carte microSD selon config", "Compatible HomeKit Secure Video, Alexa, Google Assistant, IFTTT"],
-    asin: 'B09J2HKS79', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: false,
+    asin: 'B09J2HKS79', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: false, hasAutoTracking: false,
     sdAsin: null
   },
   aqara_outdoor_poe: {
@@ -1550,7 +1558,7 @@ const CAM_PROFILES = {
     title: "Imou Ranger 2C",
     desc: "Caméra intérieure motorisée à un excellent rapport qualité-prix, avec détection de forme humaine qui filtre déjà bien les animaux, sans même avoir besoin de reconnaissance animale dédiée.",
     specs: ["2K, rotation 355° horizontale et 80° verticale, motorisée", "Détection de forme humaine par IA (distingue humains des animaux/objets), suivi intelligent", "Sirène intégrée, audio bidirectionnel", "Stockage carte microSD, cloud Imou, ou NVR compatible RTSP/ONVIF", "Appli Imou Life, compatible Alexa"],
-    asin: 'B09RGZ94LG', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: true, hasSiren: true, hasIntercom: true,
+    asin: 'B09RGZ94LG', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: true, hasSiren: true, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   imou_zoom: {
@@ -1558,7 +1566,7 @@ const CAM_PROFILES = {
     title: "Imou Cruiser 2 AI (PTZ)",
     desc: "Alternative motorisée à la Reolink RLC-823A : rotation 360° avec suivi automatique et détection IA personne/véhicule qui réduit fortement les fausses alertes liées à la pluie, aux insectes ou à la lumière.",
     specs: ["2K, rotation 340° horizontale et 90° verticale, motorisée avec suivi automatique", "Détection IA personne (jusqu'à 22m) et véhicule (jusqu'à 44m), 95% de fausses alertes en moins annoncées", "Vision nocturne EN COULEUR jusqu'à 30m, zoom numérique 8x, sirène et alarme sonore personnalisable", "WiFi 2,4GHz et Wi-Fi 6, alimentation secteur (pas de PoE)", "Stockage carte microSD (jusqu'à 256 Go), NVR compatible RTSP/ONVIF, ou cloud Imou"],
-    asin: 'B0BP1RJTJ2', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: true, hasIntercom: true,
+    asin: 'B0BP1RJTJ2', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: true, hasIntercom: true, hasAutoTracking: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   imou_solar_pt: {
@@ -1566,7 +1574,7 @@ const CAM_PROFILES = {
     title: "Imou 3K Solaire PTZ (batterie 5000mAh)",
     desc: "Alternative motorisée à l'Argus PT Ultra : caméra 100% sans fil sur batterie et panneau solaire, avec rotation 360° et détection personne/véhicule.",
     specs: ["3K/5MP, rotation 350° horizontale et 90° verticale, motorisée", "Batterie 5000mAh + panneau solaire 3W fourni, fonctionne jusqu'à -10°C", "Détection personne/véhicule, vision nocturne EN COULEUR jusqu'à 20m", "Étanche IP65, mode confidentialité (objectif masqué)", "Stockage carte microSD ou cloud Imou (30 jours d'essai gratuit)"],
-    asin: 'B0DPZM1FCX', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    asin: 'B0DPZM1FCX', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true, hasAutoTracking: false,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   imou_doorbell: {
@@ -1789,6 +1797,7 @@ function camResolve(a) {
   if (!a.nv) return 'nightvision';
   let profile = baseProfile;
   if (a.nv === 'couleur' && CAM_COLOR_ALT[baseProfile]) profile = CAM_COLOR_ALT[baseProfile];
+  if (a.motorized === 'motorisee' && !a.tracking) return 'tracking_detect';
   if (!a.animal) return 'animal_detect';
   const needsPackageQ = (a.usage === 'porte' || a.usage === 'colis');
   if (needsPackageQ && !a.package) return 'package_detect';
@@ -1806,7 +1815,7 @@ function camResolve(a) {
 const CAM_STEP_KEY_MAP = {
   scope: 'scope', usage_interieur: 'usage', usage_exterieur: 'usage',
   power: 'power', multi: 'multi', motorized_indoor: 'motorized', motorized_poe: 'motorized', motorized_solar: 'motorized',
-  wifi: 'wifi', budget: 'budget', nightvision: 'nv', animal_detect: 'animal', package_detect: 'package', color_pref: 'color',
+  wifi: 'wifi', budget: 'budget', nightvision: 'nv', tracking_detect: 'tracking', animal_detect: 'animal', package_detect: 'package', color_pref: 'color',
   siren_detect: 'siren', intercom_detect: 'intercom',
   doorbell_power: 'doorbell_power', doorbell_chime: 'doorbell_chime', doorbell_street: 'doorbell_street',
   retention: 'retention', storage: 'storage', ecosystem: 'ecosystem', existing_brand: 'existing_brand'
@@ -1916,6 +1925,12 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
   const colorNote = (camAnswers.color && camAnswers.color !== 'peu_importe')
     ? `<li style="color:var(--muted)">🎨 Je n'ai pas vérifié individuellement la couleur exacte de cette référence précise, certains modèles existent en blanc et noir sous des références différentes. Vérifie le coloris sur la fiche produit avant d'acheter.</li>`
     : '';
+  let trackingNote = '';
+  if (camAnswers.tracking === 'oui') {
+    trackingNote = p.hasAutoTracking
+      ? `<li style="color:var(--accent2)">✓ Suivi automatique de personne confirmé, la caméra pivote toute seule pour garder le sujet dans le cadre</li>`
+      : `<li style="color:var(--muted)">ℹ️ Pas de suivi automatique confirmé pour ce modèle, elle pivote mais ne suit pas la personne toute seule.</li>`;
+  }
   let haNote = '';
   let haHubBlock = '';
   if (camAnswers.ecosystem === 'home_assistant') {
@@ -1956,7 +1971,7 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
       <div class="cam-result-badge">${extraBadge ? extraBadge + ' · ' : ''}${p.badge}</div>
       <div class="cam-result-title">${p.title}</div>
       <div class="cam-result-desc">${p.desc}</div>
-      <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${animalNote}${packageNote}${sirenNote}${intercomNote}${colorNote}${haNote}${brandMatchNote}</ul>
+      <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${trackingNote}${animalNote}${packageNote}${sirenNote}${intercomNote}${colorNote}${haNote}${brandMatchNote}</ul>
       <div style="margin-bottom:4px">${tipsBlock}</div>
       <div class="cam-buy-row">
         <a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
