@@ -1235,6 +1235,30 @@ const CAM_STEPS = {
       { value: 'non', label: "Non, la détection de personne me suffit" }
     ]
   },
+  siren_detect: {
+    question: "Veux-tu une alarme sonore/sirène intégrée à la caméra ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Pour dissuader ou faire fuir un intrus à distance" },
+      { value: 'non', label: "Non" },
+      { value: 'peu_importe', label: "Peu importe" }
+    ]
+  },
+  intercom_detect: {
+    question: "Veux-tu pouvoir parler et écouter à travers la caméra, micro et haut-parleur ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Pour parler à un livreur, un proche, ou un animal à distance" },
+      { value: 'non', label: "Non" },
+      { value: 'peu_importe', label: "Peu importe" }
+    ]
+  },
+  color_pref: {
+    question: "Une couleur de boîtier en particulier ?",
+    options: [
+      { value: 'blanc', label: "Blanc" },
+      { value: 'noir', label: "Noir / gris foncé" },
+      { value: 'peu_importe', label: "Peu importe" }
+    ]
+  },
   retention: {
     question: "Combien de temps veux-tu accéder à l'historique d'enregistrement ?",
     options: [
@@ -1247,7 +1271,7 @@ const CAM_STEPS = {
     question: "Quel type de stockage préfères-tu pour les vidéos ?",
     options: [
       { value: 'sd', label: "Carte microSD", sub: "Stockage local, pas d'abonnement, mais coût à l'achat de la carte" },
-      { value: 'cloud', label: "Cloud (abonnement)", sub: "Pas de carte à acheter, mais coût récurrent chaque mois" },
+      { value: 'cloud', label: "Cloud (abonnement)", sub: "Pas de carte à acheter, coût récurrent chaque mois, mais débloque souvent des détections IA plus poussées (visages, description, fumée...)" },
       { value: 'nvr_nas', label: "NVR ou NAS existant", sub: "Tu as déjà (ou veux) un enregistreur réseau ou un NAS type Synology/QNAP" },
       { value: 'peu_importe', label: "Peu importe", sub: "Montre-moi les options" }
     ]
@@ -1273,6 +1297,7 @@ const CAM_STEPS = {
       { value: 'Google Nest', label: "Google Nest" },
       { value: 'Somfy', label: "Somfy" },
       { value: 'Aqara', label: "Aqara" },
+      { value: 'Tuya/SmartLife', label: "Tuya / Smart Life", sub: "Caméra générique compatible Tuya (souvent trouvée sur AliExpress)" },
       { value: 'autre', label: "Une autre marque", sub: "Xiaomi, Sannce, dis-moi ton modèle et je vérifie s'il correspond" }
     ]
   }
@@ -1285,7 +1310,7 @@ const CAM_PROFILES = {
     title: "TP-Link Tapo C200",
     desc: "Le modèle d'entrée de gamme le plus vendu pour surveiller une pièce : simple, fiable, très abordable.",
     specs: ["Résolution 1080p, rotation 360°/114°", "Vision nocturne infrarouge (noir et blanc) jusqu'à 9 à 12m", "Détection de mouvement et de personnes", "Stockage carte microSD jusqu'à 512 Go", "Appli Tapo, compatible Alexa/Google Assistant"],
-    asin: 'B07XR2NWZC', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true,
+    asin: 'B07XR2NWZC', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   tapo_premium: {
@@ -1293,7 +1318,7 @@ const CAM_PROFILES = {
     title: "TP-Link Tapo C210",
     desc: "Caméra WiFi intérieure motorisée à 360°, meilleure image et meilleur suivi que le modèle d'entrée de gamme.",
     specs: ["Résolution 2K, vision nocturne infrarouge jusqu'à 9 à 10m", "Rotation 360° horizontale motorisée, suivi de mouvement", "Détection de personnes et pleurs de bébé", "Stockage carte microSD jusqu'à 512 Go, pas d'abonnement obligatoire", "Appli Tapo, compatible Alexa/Google Assistant"],
-    asin: 'B095CLQ1PT', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true,
+    asin: 'B095CLQ1PT', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   switchbot_budget: {
@@ -1301,15 +1326,23 @@ const CAM_PROFILES = {
     title: "SwitchBot Caméra Intérieure",
     desc: "Alternative à la Tapo C200 : caméra WiFi motorisée et abordable, avec détection IA de forme humaine et suivi automatique à 360°.",
     specs: ["Résolution 1080p, détection de forme humaine par IA, suivi automatique 360°", "Vision nocturne infrarouge jusqu'à 10m", "Audio bidirectionnel", "Stockage carte microSD ou cloud selon abonnement", "Appli SwitchBot, compatible Alexa/Google Home et Tuya"],
-    asin: 'B095RK71N7', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false,
+    asin: 'B095RK71N7', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
     sdAsin: null
   },
   switchbot_premium: {
     brand: "SwitchBot", badge: "Intérieur · WiFi · Alternative",
     title: "SwitchBot Pan/Tilt Cam 2K",
     desc: "Alternative à la Tapo C210 : image 2K, vision nocturne EN COULEUR, rotation 360°/115° motorisée, mode confidentialité physique (l'objectif se cache).",
-    specs: ["Résolution 2K, vision nocturne EN COULEUR", "Rotation 360°/115° motorisée, détection de forme humaine, suivi de mouvement", "Mode confidentialité physique, l'objectif se rétracte", "Stockage carte microSD jusqu'à 256 Go ou cloud", "Appli SwitchBot, compatible Alexa/Google Home et Tuya"],
-    asin: 'B0CR3WTRD4', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false,
+    specs: ["Résolution 2K, vision nocturne EN COULEUR", "Rotation 360°/115° motorisée, détection de forme humaine, suivi de mouvement", "Mode confidentialité physique, l'objectif se rétracte", "Audio bidirectionnel intégré", "Stockage carte microSD jusqu'à 256 Go ou cloud", "Appli SwitchBot, compatible Alexa/Google Home et Tuya"],
+    asin: 'B0CR3WTRD4', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
+  switchbot_outdoor: {
+    brand: "SwitchBot", badge: "Sans fil · WiFi + Batterie · Alternative · Fixe",
+    title: "SwitchBot Outdoor Spotlight Cam 2K",
+    desc: "Alternative fixe à l'Argus 3 Pro et à l'EZVIZ BC1C : caméra sur batterie avec deux projecteurs LED qui s'allument automatiquement en cas de détection pour filmer en couleur de nuit. Panneau solaire vendu séparément en accessoire.",
+    specs: ["2K, deux projecteurs LED pour la vision nocturne EN COULEUR", "Détection IA humain/animal, réduit les fausses alertes", "Batterie 10000mAh (jusqu'à 180 jours), panneau solaire SwitchBot disponible séparément", "Alarme anti-arrachement 100dB si la caméra est retirée sans autorisation", "Étanche IP65, audio bidirectionnel, stockage carte microSD jusqu'à 256 Go ou cloud", "Appli SwitchBot, compatible Alexa/Google Home"],
+    asin: 'B0CR3WR73D', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   tapo_fixed: {
@@ -1317,7 +1350,7 @@ const CAM_PROFILES = {
     title: "TP-Link Tapo C110",
     desc: "Caméra fixe, objectif non motorisé, simple et discrète, avec un grand angle de vue de 105° qui couvre déjà une bonne partie de la pièce sans avoir besoin de pivoter.",
     specs: ["Résolution 2K/3MP, objectif fixe grand angle 105°", "Vision nocturne infrarouge jusqu'à 9m", "Détection de mouvement et de personnes", "Stockage carte microSD jusqu'à 256 Go, alarme sonore et lumineuse dissuasive", "Appli Tapo, compatible Alexa/Google Assistant, ONVIF/RTSP pris en charge"],
-    asin: 'B094DM9LZQ', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: true,
+    asin: 'B094DM9LZQ', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: true, hasSiren: true, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   doorbell: {
@@ -1325,7 +1358,7 @@ const CAM_PROFILES = {
     title: "Reolink Video Doorbell WiFi",
     desc: "Sonnette connectée avec caméra, raccordée au secteur ou au câblage existant, avec un carillon filaire inclus à brancher sur une prise intérieure. Alimentation continue, pas de recharge à gérer.",
     specs: ["Détection de personnes/véhicules/colis, audio bidirectionnel", "Vision nocturne infrarouge, étanche pour usage extérieur", "Carillon filaire inclus, à brancher sur une prise intérieure", "Stockage carte microSD jusqu'à 256 Go, pas d'abonnement cloud obligatoire", "Appli Reolink"],
-    asin: 'B0B4KBMDD3', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: '256 Go', category: 'exterieur', haCompatible: true,
+    asin: 'B0B4KBMDD3', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   doorbell_battery: {
@@ -1333,7 +1366,7 @@ const CAM_PROFILES = {
     title: "Reolink Video Doorbell (Battery)",
     desc: "Sonnette connectée entièrement sans fil, batterie rechargeable d'environ 5 à 6 mois d'autonomie. Compatible avec un carillon mécanique/numérique existant si tu en as un, ou avec le Reolink Chime V2 vendu séparément pour une sonnerie sans fil.",
     specs: ["Détection de personnes/véhicules/colis, audio bidirectionnel", "Vision nocturne infrarouge, étanche pour usage extérieur", "Batterie rechargeable non amovible, environ 5 à 6 mois d'autonomie", "Carillon mécanique/numérique existant compatible par câblage, ou Reolink Chime V2 en option (vendu séparément)", "Stockage carte microSD jusqu'à 256 Go, pas d'abonnement cloud obligatoire", "Appli Reolink"],
-    asin: 'B0CYGVPLLT', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: '256 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true,
+    asin: 'B0CYGVPLLT', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: '256 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   poe_budget: {
@@ -1341,7 +1374,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-510A (PoE)",
     desc: "Caméra filaire fixe extérieure simple et fiable en 5MP, un seul câble réseau pour l'alimentation et la vidéo, sans WiFi à configurer.",
     specs: ["5MP, vision nocturne infrarouge jusqu'à 30m", "Détection IA locale personne/véhicule/animal, ignore les mouvements non pertinents", "Étanche IP67, time-lapse", "Stockage carte microSD jusqu'à 256 Go ou NVR/FTP", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B08F71V8SH', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true,
+    asin: 'B08F71V8SH', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   poe_premium: {
@@ -1349,7 +1382,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-810A (PoE)",
     desc: "Caméra filaire fixe extérieure en 4K, meilleure image et meilleure détection que le modèle d'entrée de gamme.",
     specs: ["4K, détection IA locale personne/véhicule/animal", "Vision nocturne infrarouge jusqu'à 30m, étanche IP67", "Stockage carte microSD jusqu'à 512 Go, ou NVR/FTP", "Alimentation et données par câble Ethernet (PoE)", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B08F7C37NZ', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true,
+    asin: 'B08F7C37NZ', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   poe_premium_color: {
@@ -1357,7 +1390,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-81PA (PoE, projecteur couleur)",
     desc: "Même usage que le modèle filaire standard, mais avec un projecteur LED intégré qui bascule la vision nocturne en couleur dès qu'un mouvement est détecté.",
     specs: ["4K, projecteur LED avec vision nocturne EN COULEUR et mode nuit intelligent", "Détection IA locale personne/véhicule/animal, sirène dissuasive intégrée", "Panoramique manuel 180°, étanche IP67", "Stockage carte microSD jusqu'à 256 Go, non incluse, ou NVR", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B0C3CV6VZV', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true,
+    asin: 'B0C3CV6VZV', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: true, hasIntercom: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   imou_premium: {
@@ -1365,7 +1398,7 @@ const CAM_PROFILES = {
     title: "Imou 2K Caméra Extérieure WiFi",
     desc: "Alternative à la Reolink RLC-810A, généralement moins chère : fonctionne en WiFi, pas de câble réseau à tirer, mais a quand même besoin d'une prise secteur à proximité. Compatibilité ONVIF/RTSP confirmée par le fabricant.",
     specs: ["2K/3MP, vision nocturne EN COULEUR jusqu'à 30m", "Détection et suivi intelligent personne/véhicule", "WiFi 2,4/5GHz, alimentation secteur 12V, pas de PoE ni de batterie", "Compatible ONVIF et RTSP confirmé par Imou (NVR/NAS/Home Assistant)", "Étanche IP66, audio bidirectionnel, appli Imou Life"],
-    asin: 'B08BXZY1D2', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: true,
+    asin: 'B08BXZY1D2', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: true,
     sdAsin: null
   },
   zoom: {
@@ -1373,7 +1406,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-823A 16X (PTZ)",
     desc: "Caméra motorisée avec zoom optique 16X, parfaite installée en hauteur pour couvrir un grand terrain ou surveiller un portail éloigné avec des détails nets.",
     specs: ["Zoom optique 16X, panoramique 360° et inclinaison 90°, motorisée avec suivi auto", "Suivi automatique des personnes/véhicules/animaux", "Vision nocturne infrarouge jusqu'à 80m", "Alimentation et données par câble Ethernet (PoE)", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B0BL3HYR3L', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', longRange: true, haCompatible: true,
+    asin: 'B0BL3HYR3L', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', longRange: true, haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   zoom_color: {
@@ -1381,7 +1414,7 @@ const CAM_PROFILES = {
     title: "Reolink RLC-811A (PoE, zoom couleur)",
     desc: "Bon compromis pour voir loin et en couleur la nuit : zoom optique 5X, moins puissant que la version 16X noir et blanc, avec projecteur intégré.",
     specs: ["Zoom optique 5X, vision nocturne EN COULEUR grâce au projecteur, motorisée", "Détection personne/véhicule, fausses alertes très réduites", "4K, alimentation et données par câble Ethernet (PoE)", "Stockage carte microSD jusqu'à 512 Go ou NVR/FTP", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B0982WVMVC', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', longRange: true, zoomTradeoff: true, haCompatible: true,
+    asin: 'B0982WVMVC', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', longRange: true, zoomTradeoff: true, haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   kit: {
@@ -1389,7 +1422,7 @@ const CAM_PROFILES = {
     title: "Reolink RLK8-800B4",
     desc: "Kit complet pour sécuriser toute une propriété : 4 caméras fixes filaires PoE 8MP reliées à un enregistreur NVR avec disque dur 2 To pour un enregistrement continu 24 heures sur 24.",
     specs: ["4 caméras fixes 4K/8MP et NVR 8 canaux", "Disque dur 2 To intégré, extensible jusqu'à 16 To", "Enregistrement continu 24h/24, détection personne/véhicule", "Câblage PoE, installation type vidéosurveillance pro", "Appli Reolink, flux RTSP/ONVIF exploitable"],
-    asin: 'B07LBFJDQW', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: true,
+    asin: 'B07LBFJDQW', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: null
   },
   kit_annke: {
@@ -1397,7 +1430,7 @@ const CAM_PROFILES = {
     title: "Annke Kit 4K/8MP (8CH NVR + 4 caméras)",
     desc: "Alternative au kit Reolink : configuration très proche, 4 caméras fixes 8MP, NVR 8 canaux, disque dur 2 To, généralement positionnée un peu moins cher pour des caractéristiques similaires.",
     specs: ["4 caméras fixes 4K/8MP et NVR 8 canaux, disque dur 2 To inclus", "Détection IA personne/véhicule", "Étanche IP67, vision nocturne infrarouge jusqu'à 30m", "Câblage PoE, installation type vidéosurveillance pro", "Appli Annke Vision, écosystème séparé de Reolink, RTSP/ONVIF pris en charge sur la gamme"],
-    asin: 'B07NN86X33', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: true,
+    asin: 'B07NN86X33', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: null
   },
   solar_wifi: {
@@ -1405,7 +1438,7 @@ const CAM_PROFILES = {
     title: "Reolink Argus 3 Pro + Panneau solaire",
     desc: "Caméra fixe entièrement sans fil sur batterie, rechargée en continu par un panneau solaire fourni : aucun câble, installation libre n'importe où avec du WiFi.",
     specs: ["Connexion WiFi 2,4/5GHz, aucun câblage requis", "Batterie et panneau solaire fournis pour une autonomie continue", "Détection IA locale personne/véhicule/animal, vision nocturne EN COULEUR", "Stockage carte microSD jusqu'à 512 Go ou cloud au choix", "Appli Reolink"],
-    asin: 'B08NDM75ZY', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true,
+    asin: 'B08NDM75ZY', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   solar_wifi_pt: {
@@ -1413,7 +1446,7 @@ const CAM_PROFILES = {
     title: "Reolink Argus PT Ultra + Panneau solaire",
     desc: "Version motorisée de l'Argus 3 Pro : elle pivote à 360° et suit automatiquement les mouvements, en plus de pouvoir basculer entre vision nocturne couleur et infrarouge.",
     specs: ["Rotation 360° et inclinaison motorisées, suivi automatique des mouvements", "Batterie et panneau solaire fournis, WiFi 2,4/5GHz (WiFi 6)", "Vision nocturne EN COULEUR (projecteur) ou infrarouge au choix", "Détection IA locale personne/véhicule/animal, stockage carte microSD jusqu'à 512 Go ou cloud", "Appli Reolink"],
-    asin: 'B0BZD4P25M', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true,
+    asin: 'B0BZD4P25M', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: true, needsHomeHub: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   solar_wifi_ezviz: {
@@ -1421,15 +1454,31 @@ const CAM_PROFILES = {
     title: "EZVIZ BC1C (WiFi, batterie 7800mAh)",
     desc: "Alternative fixe à l'Argus 3 Pro : caméra WiFi sur batterie 7800mAh annoncée pour environ 210 jours d'autonomie. Vendue sans panneau solaire dans cette référence précise, un panneau solaire EZVIZ existe en accessoire séparé.",
     specs: ["Connexion WiFi 2,4GHz, batterie rechargeable 7800mAh, environ 210 jours annoncés", "Détection de forme humaine (PIR + IA), vision nocturne EN COULEUR", "Étanche IP66, sirène et flash dissuasifs, audio bidirectionnel", "Stockage local eMMC intégré 32 Go et cloud EZVIZ en option", "Appli EZVIZ, écosystème séparé de Reolink"],
-    asin: 'B095HJCQJS', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false,
+    asin: 'B095HJCQJS', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
     sdAsin: null
+  },
+  ezviz_indoor: {
+    brand: "EZVIZ", badge: "Intérieur · WiFi · Alternative",
+    title: "EZVIZ C6N",
+    desc: "Alternative motorisée à la Tapo C210 : rotation 360° horizontale et 55° verticale, vision nocturne intelligente qui ajuste automatiquement l'intensité infrarouge pour éviter la surexposition.",
+    specs: ["1080p, rotation 360° horizontale et 55° verticale, motorisée", "Vision nocturne Smart IR (ajustement automatique), détection de mouvement et suivi", "Audio bidirectionnel intégré", "Stockage carte microSD jusqu'à 256 Go, ou cloud EZVIZ en option", "Appli EZVIZ, compatible Alexa"],
+    asin: 'B07W4FMSD9', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  ezviz_zoom: {
+    brand: "EZVIZ", badge: "Extérieur WiFi · Motorisée · Alternative",
+    title: "EZVIZ C8c (5MP)",
+    desc: "Alternative motorisée à la Reolink RLC-823A : rotation 360° avec suivi automatique et zoom qui se déclenche dès qu'un mouvement humain est détecté, plus rapide qu'un simple mouvement de caméra fixe.",
+    specs: ["5MP, rotation 360° horizontale, suivi automatique et zoom lors d'une détection", "Détection IA personne/véhicule, jusqu'à 12 positions préréglées mémorisables", "Vision nocturne EN COULEUR, sirène et projecteurs clignotants (défense active)", "WiFi 2,4/5GHz, portée étendue jusqu'à 220m, option filaire possible", "Stockage carte microSD jusqu'à 512 Go, ou cloud EZVIZ CloudPlay en option"],
+    asin: 'B0CJTWZTMT', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   solar_4g: {
     brand: "Reolink", badge: "100% autonome · 4G + Solaire · Fixe",
     title: "Reolink Go Plus + Panneau solaire",
     desc: "Caméra cellulaire fixe fonctionnant avec une carte SIM 4G/LTE : ni WiFi, ni électricité nécessaires. Idéale pour un terrain isolé, un chalet, une ferme ou un chantier.",
     specs: ["Connexion 4G/LTE via carte SIM non incluse, abonnement data requis", "Batterie et panneau solaire fournis pour un fonctionnement continu", "Détection personne/véhicule, vision nocturne infrarouge", "Stockage carte microSD jusqu'à 128 Go", "Appli Reolink"],
-    asin: 'B09DPQBCKS', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '128 Go', category: 'exterieur', haCompatible: false,
+    asin: 'B09DPQBCKS', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '128 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: false,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
   kit_imou: {
@@ -1437,7 +1486,7 @@ const CAM_PROFILES = {
     title: "Imou Kit WiFi (4CH NVR + 4 caméras)",
     desc: "Alternative aux kits Reolink/Annke : les caméras communiquent en WiFi avec l'enregistreur, pas de câble PoE à tirer entre chaque caméra et le NVR (juste l'alimentation électrique de chaque caméra).",
     specs: ["4 caméras extérieures 1080p et NVR 4 canaux, disque dur 1 To inclus", "Communication WiFi entre les caméras et le NVR, pas de câble PoE à tirer", "Étanche IP67, détection de mouvement", "Appli Imou Life, écosystème séparé de Reolink/Annke"],
-    asin: 'B08N4MP12H', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: false,
+    asin: 'B08N4MP12H', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', builtInStorage: true, haCompatible: false, hasSiren: false, hasIntercom: false,
     sdAsin: null
   },
   nest_cam_battery: {
@@ -1445,7 +1494,7 @@ const CAM_PROFILES = {
     title: "Google Nest Cam (Batterie)",
     desc: "Caméra polyvalente utilisable à l'intérieur comme à l'extérieur, sur batterie rechargeable, pensée pour l'écosystème Google Home.",
     specs: ["1080p, détection IA personne/animal/véhicule", "Résiste aux intempéries, utilisable en intérieur ou en extérieur", "3 heures d'historique gratuit, au-delà nécessite un abonnement Nest Aware, cloud uniquement, pas de carte microSD", "Compatible Google Home, Google Assistant, affichage sur écrans Alexa", "Pas de panneau solaire ni de version motorisée vérifiée"],
-    asin: 'B09DVRMCBL', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false,
+    asin: 'B09DVRMCBL', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
     sdAsin: null
   },
   somfy_outdoor: {
@@ -1453,7 +1502,7 @@ const CAM_PROFILES = {
     title: "Somfy Outdoor Camera",
     desc: "Caméra extérieure grand angle avec sirène intégrée à 110dB, à brancher sur une prise extérieure ou à raccorder à un luminaire existant pour l'allumer automatiquement en cas de détection.",
     specs: ["1080p, grand angle 130°, vision nocturne infrarouge", "Détection de mouvement avancée (SomfyVision), sirène 110dB déclenchable à distance", "Alimentation secteur, ou raccordement à un luminaire existant", "7 jours d'historique cloud gratuits (Somfy Protect), pas de carte microSD", "Compatible TaHoma, Alexa, Google Home, IFTTT"],
-    asin: 'B07J2WD6KX', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false,
+    asin: 'B07J2WD6KX', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: false,
     sdAsin: null
   },
   aqara_indoor_fixed: {
@@ -1461,7 +1510,7 @@ const CAM_PROFILES = {
     title: "Aqara Camera Hub G2H Pro",
     desc: "Caméra fixe grand angle 146°, qui fait aussi office de hub Zigbee pour piloter d'autres appareils Aqara. Pensée avant tout pour Apple HomeKit Secure Video.",
     specs: ["1080p, grand angle fixe 146°, reconnaissance de visages et de colis", "Vision nocturne infrarouge, audio bidirectionnel, sirène intégrée", "Fait aussi office de hub Zigbee pour d'autres appareils Aqara", "Stockage cloud chiffré inclus gratuitement, ou carte microSD selon config", "Compatible HomeKit Secure Video, Alexa, Google Assistant, IFTTT"],
-    asin: 'B09N6KDX5K', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: null, category: 'interieur', haCompatible: false,
+    asin: 'B09N6KDX5K', nightVision: 'ir', petDetection: false, packageDetection: true, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: true, hasIntercom: true,
     sdAsin: null
   },
   aqara_indoor_motorized: {
@@ -1469,7 +1518,7 @@ const CAM_PROFILES = {
     title: "Aqara Camera Hub G3",
     desc: "Caméra motorisée 2K avec rotation 340°, reconnaissance faciale et de gestes, qui fait aussi office de hub Zigbee. Pensée avant tout pour Apple HomeKit Secure Video.",
     specs: ["2K, rotation Pan/Tilt 340°, reconnaissance de visages et de gestes", "Vision nocturne infrarouge, télécommande infrarouge intégrée pour la TV/clim", "Fait aussi office de hub Zigbee pour d'autres appareils Aqara", "Stockage cloud chiffré inclus gratuitement, ou carte microSD selon config", "Compatible HomeKit Secure Video, Alexa, Google Assistant, IFTTT"],
-    asin: 'B09J2HKS79', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false,
+    asin: 'B09J2HKS79', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: false,
     sdAsin: null
   },
   aqara_outdoor_poe: {
@@ -1477,8 +1526,72 @@ const CAM_PROFILES = {
     title: "Aqara Camera Hub G5 Pro (PoE)",
     desc: "Caméra extérieure filaire avec vision nocturne EN COULEUR réelle, détection IA visages/véhicules/animaux, et un vrai flux RTSP local en plus de HomeKit Secure Video : rare chez une caméra orientée Apple.",
     specs: ["4MP, vision nocturne EN COULEUR réelle avec projecteur, IP65", "Détection IA visages/véhicules/personnes/animaux, hub Zigbee et Thread intégré", "Stockage eMMC chiffré intégré, NAS local, ou cloud Aqara/Apple", "Flux RTSP local disponible en plus de HomeKit Secure Video (NAS, Frigate, Blue Iris...)", "Alimentation et données par câble Ethernet (PoE)"],
-    asin: 'B0DPX69RWZ', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: true,
+    asin: 'B0DPX69RWZ', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: null, category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: false,
     sdAsin: null
+  },
+  somfy_indoor: {
+    brand: "Somfy", badge: "Intérieur · WiFi · Alternative",
+    title: "Somfy Indoor Camera",
+    desc: "Caméra fixe grand angle avec un volet mécanique motorisé unique qui couvre physiquement l'objectif quand tu es chez toi, pour une confidentialité totale, pas juste logicielle.",
+    specs: ["1080p, grand angle fixe 130°, zoom numérique 8x", "Volet mécanique motorisé qui couvre l'objectif automatiquement en mode présent", "Détection de mouvement compatible avec les animaux, zones à exclure paramétrables", "7 jours d'historique cloud gratuits (Somfy Protect), pas de carte microSD", "Compatible TaHoma, Alexa, Google Home, s'intègre aussi aux systèmes d'alarme Somfy"],
+    asin: 'B07D7JKSMJ', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'interieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: null
+  },
+  tuya_generic: {
+    brand: "Tuya/SmartLife", badge: "Extérieur · WiFi + secteur · Alternative générique",
+    title: "Caméra WiFi 5MP Tuya Smart Life (générique)",
+    desc: "Représentative des nombreuses caméras génériques compatibles Tuya/Smart Life qu'on trouve chez plusieurs petites marques (souvent les mêmes caméras rebadgées). L'intérêt : une seule appli Smart Life pour piloter caméra, prises, ampoules et autres objets Tuya, peu importe la marque affichée dessus.",
+    specs: ["5MP, vision nocturne EN COULEUR, détection de mouvement", "Étanche IP66, alimentation secteur (câble assez long fourni)", "Stockage carte microSD (non fournie) ou cloud Tuya en option", "Appli Tuya ou Smart Life, compatible avec de nombreux autres objets connectés Tuya (prises, ampoules, thermostats...)", "Pas de reconnaissance IA avancée (personne/véhicule/animal) comme chez Reolink ou Imou"],
+    asin: 'B09LCN17W3', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '128 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  imou_indoor: {
+    brand: "Imou", badge: "Intérieur · WiFi · Alternative",
+    title: "Imou Ranger 2C",
+    desc: "Caméra intérieure motorisée à un excellent rapport qualité-prix, avec détection de forme humaine qui filtre déjà bien les animaux, sans même avoir besoin de reconnaissance animale dédiée.",
+    specs: ["2K, rotation 355° horizontale et 80° verticale, motorisée", "Détection de forme humaine par IA (distingue humains des animaux/objets), suivi intelligent", "Sirène intégrée, audio bidirectionnel", "Stockage carte microSD, cloud Imou, ou NVR compatible RTSP/ONVIF", "Appli Imou Life, compatible Alexa"],
+    asin: 'B09RGZ94LG', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'interieur', haCompatible: true, hasSiren: true, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  imou_zoom: {
+    brand: "Imou", badge: "Extérieur filaire · PTZ motorisée · Alternative",
+    title: "Imou Cruiser 2 AI (PTZ)",
+    desc: "Alternative motorisée à la Reolink RLC-823A : rotation 360° avec suivi automatique et détection IA personne/véhicule qui réduit fortement les fausses alertes liées à la pluie, aux insectes ou à la lumière.",
+    specs: ["2K, rotation 340° horizontale et 90° verticale, motorisée avec suivi automatique", "Détection IA personne (jusqu'à 22m) et véhicule (jusqu'à 44m), 95% de fausses alertes en moins annoncées", "Vision nocturne EN COULEUR jusqu'à 30m, zoom numérique 8x, sirène et alarme sonore personnalisable", "WiFi 2,4GHz et Wi-Fi 6, alimentation secteur (pas de PoE)", "Stockage carte microSD (jusqu'à 256 Go), NVR compatible RTSP/ONVIF, ou cloud Imou"],
+    asin: 'B0BP1RJTJ2', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: true, hasSiren: true, hasIntercom: true,
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
+  imou_solar_pt: {
+    brand: "Imou", badge: "100% sans fil · WiFi + Solaire · Motorisée · Alternative",
+    title: "Imou 3K Solaire PTZ (batterie 5000mAh)",
+    desc: "Alternative motorisée à l'Argus PT Ultra : caméra 100% sans fil sur batterie et panneau solaire, avec rotation 360° et détection personne/véhicule.",
+    specs: ["3K/5MP, rotation 350° horizontale et 90° verticale, motorisée", "Batterie 5000mAh + panneau solaire 3W fourni, fonctionne jusqu'à -10°C", "Détection personne/véhicule, vision nocturne EN COULEUR jusqu'à 20m", "Étanche IP65, mode confidentialité (objectif masqué)", "Stockage carte microSD ou cloud Imou (30 jours d'essai gratuit)"],
+    asin: 'B0DPZM1FCX', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  imou_doorbell: {
+    brand: "Imou", badge: "Porte d'entrée · Sur batterie · Alternative",
+    title: "Imou Doorbell Kit 2S (DB2S)",
+    desc: "Alternative à la sonnette Reolink : livrée avec un carillon filaire qui sert aussi de répéteur WiFi pour renforcer le signal jusqu'à la porte. Bon exemple de fonction réservée au cloud payant : la détection gratuite ne reconnaît que les personnes, la reconnaissance voiture/animal/colis nécessite l'abonnement Imou Protect.",
+    specs: ["2K/3MP, caméra orientable à 30°, vision nocturne EN COULEUR jusqu'à 5m", "Détection de personnes gratuite ; détection voiture/animal/colis réservée à l'abonnement Imou Protect (30 jours d'essai)", "Carillon filaire inclus qui fait aussi répéteur WiFi, son personnalisable", "Audio bidirectionnel avec modificateur de voix, réponses vocales préenregistrées", "Stockage carte microSD jusqu'à 512 Go dans le carillon, ou cloud Imou Protect"],
+    asin: 'B0D7HNQQLY', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  tapo_doorbell: {
+    brand: "TP-Link Tapo", badge: "Porte d'entrée · Batterie ou secteur · Alternative",
+    title: "TP-Link Tapo D235",
+    desc: "Alternative à la sonnette Reolink et à l'Imou DB2S : point fort réel, la détection IA personne/véhicule/animal/colis est gratuite et illimitée, sans avoir besoin d'un abonnement comme chez Imou.",
+    specs: ["2K/5MP, champ de vision ultra-large 180°, vision nocturne EN COULEUR avec projecteur", "Détection IA personne/véhicule/animal/colis GRATUITE et illimitée, sans abonnement obligatoire", "Batterie 10000mAh (jusqu'à 210 jours) ou raccordement filaire, carillon inclus", "Audio bidirectionnel avec changeur de voix, réponses rapides préenregistrées", "Stockage carte microSD jusqu'à 512 Go, ou cloud Tapo Care en option", "Étanche IP66, compatible Alexa et Google Assistant"],
+    asin: 'B0DDL95M8Z', nightVision: 'color', petDetection: true, packageDetection: true, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  aqara_doorbell: {
+    brand: "Aqara", badge: "Porte d'entrée · Batterie ou secteur · Alternative",
+    title: "Aqara Video Doorbell G4",
+    desc: "Alternative pensée pour Apple HomeKit Secure Video : sa reconnaissance faciale tourne en local sur l'appareil (pas dans le cloud), ce qui réduit les fausses alertes tout en préservant la vie privée, même sans connexion internet.",
+    specs: ["1080p, champ de vision 162°, reconnaissance faciale locale par IA", "Sur piles (6xAA, environ 4 mois) ou raccordement filaire, carillon avec port USB-C qui fait aussi répéteur", "7 jours de stockage cloud HomeKit gratuits, stockage local sur carte microSD jusqu'à 512 Go dans le carillon", "Audio bidirectionnel avec changeur de voix, alarme anti-arrachement", "Étanche IP66, compatible HomeKit Secure Video, Alexa, Google Home"],
+    asin: 'B0BPHTL7MG', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   }
 };
 
@@ -1519,12 +1632,24 @@ const CAM_FAMILY_BRAND_ALT = {
     Aqara: {
       pick: (a) => a.motorized === 'fixe' ? 'aqara_indoor_fixed' : 'aqara_indoor_motorized',
       note: () => "Ce modèle Aqara est avant tout pensé pour Apple HomeKit Secure Video, fait aussi office de hub Zigbee pour d'autres appareils Aqara."
+    },
+    Somfy: {
+      pick: () => 'somfy_indoor',
+      note: (a) => a.motorized === 'motorisee' ? "Somfy n'a pas de caméra à rotation motorisée vérifiée, seulement un volet mécanique qui couvre l'objectif pour la confidentialité, pas un suivi de mouvement." : "Le volet mécanique motorisé qui couvre l'objectif est une vraie particularité Somfy pour la confidentialité."
+    },
+    Imou: {
+      pick: () => 'imou_indoor',
+      note: (a) => a.motorized === 'fixe' ? "Imou n'a pas de modèle fixe vérifié en intérieur, voici leur modèle motorisé, tu peux simplement ne pas utiliser la rotation." : ''
+    },
+    EZVIZ: {
+      pick: (a) => a.motorized === 'fixe' ? 'ezviz_indoor' : 'ezviz_indoor',
+      note: (a) => a.motorized === 'fixe' ? "EZVIZ n'a pas de modèle fixe vérifié en intérieur, voici leur modèle motorisé, tu peux simplement ne pas utiliser la rotation." : ''
     }
   },
   exterieur_filaire: {
     Imou: {
-      pick: () => 'imou_premium',
-      note: (a, bc) => bc === 'zoom' ? "Imou n'a pas de zoom motorisé vérifié pour ce besoin, voici leur modèle fixe grand angle avec vision nocturne couleur à la place." : (a.budget === 'eco' ? "Légèrement au-dessus du petit budget visé, mais c'est le seul modèle Imou vérifié pour ce besoin." : '')
+      pick: (a, bc) => bc === 'zoom' ? 'imou_zoom' : 'imou_premium',
+      note: (a, bc) => bc === 'zoom' ? '' : (a.budget === 'eco' ? "Légèrement au-dessus du petit budget visé, mais c'est le seul modèle Imou vérifié pour ce besoin." : '')
     },
     Somfy: {
       pick: () => 'somfy_outdoor',
@@ -1533,6 +1658,14 @@ const CAM_FAMILY_BRAND_ALT = {
     Aqara: {
       pick: () => 'aqara_outdoor_poe',
       note: (a, bc) => bc === 'zoom' ? "Aqara n'a pas de zoom motorisé vérifié, voici leur modèle grand angle fixe à la place, avec vision nocturne couleur réelle et flux RTSP local en plus de HomeKit." : ''
+    },
+    'Tuya/SmartLife': {
+      pick: () => 'tuya_generic',
+      note: (a, bc) => (bc === 'zoom' ? "Pas de version zoom motorisé vérifiée dans l'écosystème Tuya, voici un modèle générique fixe grand angle à la place. " : '') + "Pas de détection IA avancée personne/véhicule/animal comme chez Reolink ou Imou, juste de la détection de mouvement classique."
+    },
+    EZVIZ: {
+      pick: () => 'ezviz_zoom',
+      note: (a, bc) => bc !== 'zoom' ? "EZVIZ n'a qu'un modèle motorisé avec suivi automatique vérifié ici, pas de version fixe, mais tu peux ignorer le suivi." : ''
     }
   },
   kit: {
@@ -1547,9 +1680,30 @@ const CAM_FAMILY_BRAND_ALT = {
     'Google Nest': {
       pick: () => 'nest_cam_battery',
       note: (a, bc) => (bc !== 'solar_wifi_fixe' ? "Nest n'a pas de version motorisée ni 4G vérifiée, voici leur modèle WiFi sur batterie. " : '') + "Pas de panneau solaire ni de carte microSD sur ce modèle, uniquement le cloud Nest Aware."
+    },
+    Imou: {
+      pick: () => 'imou_solar_pt',
+      note: (a, bc) => bc !== 'solar_wifi_pt' ? "Imou n'a qu'une version motorisée solaire vérifiée ici, pas de version 100% fixe ni 4G, voici leur modèle le plus proche." : ''
+    },
+    SwitchBot: {
+      pick: () => 'switchbot_outdoor',
+      note: (a, bc) => (bc !== 'solar_wifi_fixe' ? "SwitchBot n'a pas de version motorisée ni 4G vérifiée, voici leur modèle fixe sur batterie. " : '') + "Le panneau solaire est vendu séparément en accessoire, pas inclus dans cette référence."
     }
   },
-  doorbell: {}
+  doorbell: {
+    Imou: {
+      pick: () => 'imou_doorbell',
+      note: () => "La détection gratuite ne reconnaît que les personnes chez Imou, la reconnaissance voiture/animal/colis nécessite l'abonnement Imou Protect."
+    },
+    'TP-Link Tapo': {
+      pick: () => 'tapo_doorbell',
+      note: () => "Point fort chez Tapo : la détection IA personne/véhicule/animal/colis est gratuite et illimitée, sans abonnement à prévoir."
+    },
+    Aqara: {
+      pick: () => 'aqara_doorbell',
+      note: () => "Ce modèle Aqara est avant tout pensé pour Apple HomeKit Secure Video, avec une reconnaissance faciale qui tourne en local sur l'appareil."
+    }
+  }
 };
 
 // Résout le profil final selon la catégorie de base et le budget choisi (petit budget / budget moyen / pas de budget)
@@ -1638,6 +1792,9 @@ function camResolve(a) {
   if (!a.animal) return 'animal_detect';
   const needsPackageQ = (a.usage === 'porte' || a.usage === 'colis');
   if (needsPackageQ && !a.package) return 'package_detect';
+  if (!a.siren) return 'siren_detect';
+  if (!a.intercom) return 'intercom_detect';
+  if (!a.color) return 'color_pref';
   if (!a.retention) return 'retention';
   const builtIn = (CAM_PROFILES[profile] || {}).builtInStorage;
   if (!builtIn && !a.storage) return 'storage';
@@ -1649,7 +1806,8 @@ function camResolve(a) {
 const CAM_STEP_KEY_MAP = {
   scope: 'scope', usage_interieur: 'usage', usage_exterieur: 'usage',
   power: 'power', multi: 'multi', motorized_indoor: 'motorized', motorized_poe: 'motorized', motorized_solar: 'motorized',
-  wifi: 'wifi', budget: 'budget', nightvision: 'nv', animal_detect: 'animal', package_detect: 'package',
+  wifi: 'wifi', budget: 'budget', nightvision: 'nv', animal_detect: 'animal', package_detect: 'package', color_pref: 'color',
+  siren_detect: 'siren', intercom_detect: 'intercom',
   doorbell_power: 'doorbell_power', doorbell_chime: 'doorbell_chime', doorbell_street: 'doorbell_street',
   retention: 'retention', storage: 'storage', ecosystem: 'ecosystem', existing_brand: 'existing_brand'
 };
@@ -1709,7 +1867,7 @@ function camStorageBlock(p, storageAnswer, retentionAnswer) {
     : '';
   const cloudNote = `
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.6">
-      ☁️ Le cloud évite d'acheter une carte, mais implique un abonnement mensuel qui varie selon le fabricant (Reolink Cloud, Tapo Care, EZVIZ CloudPlay).${cloudCapNote} Important : chez la majorité des fabricants, l'abonnement cloud ne sert pas qu'au stockage, il débloque aussi des fonctions IA supplémentaires (reconnaissance de visages familiers, recherche vidéo par description, zones intelligentes, et parfois même détection de fumée/incendie). Certaines marques proposent un palier cloud "stockage seul" moins cher sans ces fonctions IA, d'autres imposent l'abonnement complet pour en profiter. Vérifie précisément ce qui est inclus dans chaque palier sur le site du fabricant avant de choisir. Les cartes microSD ont aussi pas mal augmenté ces derniers temps à cause des tensions sur les composants mémoire, donc ça vaut le coup de comparer.
+      ☁️ Le cloud évite d'acheter une carte, mais implique un abonnement mensuel qui varie selon le fabricant (Reolink Cloud, Tapo Care, EZVIZ CloudPlay).${cloudCapNote} Important : chez la majorité des fabricants, l'abonnement cloud ne sert pas qu'au stockage, il débloque aussi des fonctions IA supplémentaires (reconnaissance de visages familiers, recherche vidéo par description, zones intelligentes, et parfois même détection de fumée/incendie). Certaines marques proposent un palier cloud "stockage seul" moins cher sans ces fonctions IA, d'autres imposent l'abonnement complet pour en profiter. Vérifie précisément ce qui est inclus dans chaque palier sur le site du fabricant avant de choisir. Autre avantage à ne pas négliger : si la caméra est volée, cassée ou détruite dans un incendie, les enregistrements restent récupérables puisqu'ils sont hébergés ailleurs, ce qu'une carte microSD ne permet pas puisqu'elle est physiquement dans la caméra. Les cartes microSD ont aussi pas mal augmenté ces derniers temps à cause des tensions sur les composants mémoire, donc ça vaut le coup de comparer.
     </div>`;
   if (storageAnswer === 'sd') return sdBlock;
   if (storageAnswer === 'cloud') return p.sdAsin ? cloudNote : sdBlock;
@@ -1743,6 +1901,21 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
       ? `<li style="color:var(--accent2)">✓ Détection de colis confirmée</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas de détection de colis confirmée pour ce modèle, mais la détection de personne suffit généralement à te prévenir qu'un livreur approche.</li>`;
   }
+  let sirenNote = '';
+  if (camAnswers.siren === 'oui') {
+    sirenNote = p.hasSiren
+      ? `<li style="color:var(--accent2)">✓ Alarme sonore/sirène intégrée confirmée</li>`
+      : `<li style="color:var(--muted)">ℹ️ Pas de sirène intégrée confirmée pour ce modèle.</li>`;
+  }
+  let intercomNote = '';
+  if (camAnswers.intercom === 'oui') {
+    intercomNote = p.hasIntercom
+      ? `<li style="color:var(--accent2)">✓ Audio bidirectionnel confirmé, micro et haut-parleur intégrés</li>`
+      : `<li style="color:var(--muted)">ℹ️ Pas d'audio bidirectionnel confirmé pour ce modèle, tu pourras probablement voir mais pas parler à travers la caméra.</li>`;
+  }
+  const colorNote = (camAnswers.color && camAnswers.color !== 'peu_importe')
+    ? `<li style="color:var(--muted)">🎨 Je n'ai pas vérifié individuellement la couleur exacte de cette référence précise, certains modèles existent en blanc et noir sous des références différentes. Vérifie le coloris sur la fiche produit avant d'acheter.</li>`
+    : '';
   let haNote = '';
   let haHubBlock = '';
   if (camAnswers.ecosystem === 'home_assistant') {
@@ -1783,7 +1956,7 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
       <div class="cam-result-badge">${extraBadge ? extraBadge + ' · ' : ''}${p.badge}</div>
       <div class="cam-result-title">${p.title}</div>
       <div class="cam-result-desc">${p.desc}</div>
-      <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${animalNote}${packageNote}${haNote}${brandMatchNote}</ul>
+      <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${animalNote}${packageNote}${sirenNote}${intercomNote}${colorNote}${haNote}${brandMatchNote}</ul>
       <div style="margin-bottom:4px">${tipsBlock}</div>
       <div class="cam-buy-row">
         <a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
