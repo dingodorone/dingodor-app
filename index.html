@@ -1145,10 +1145,12 @@ const CAM_STEPS = {
     ]
   },
   kit_special_zone: {
-    question: "Une zone a-t-elle un besoin particulier en plus des caméras standards du kit (comme un grand terrain nécessitant un zoom) ?",
+    question: "Une zone du système a-t-elle un besoin particulier, en plus des caméras standards fixes du kit ?",
     options: [
-      { value: 'oui', label: "Oui", sub: "Je veux une caméra spécifique en plus, raccordée au même enregistreur" },
-      { value: 'non', label: "Non", sub: "Les 4 caméras identiques du kit suffisent" }
+      { value: 'non', label: "Non", sub: "Les caméras fixes identiques du kit suffisent partout" },
+      { value: 'zoom', label: "Oui, une caméra zoom motorisée", sub: "Pour un grand terrain ou surveiller un portail éloigné" },
+      { value: 'couleur', label: "Oui, une caméra avec vision nocturne couleur", sub: "Pour mieux identifier une zone précise la nuit" },
+      { value: 'zoom_couleur', label: "Oui, les deux à la fois", sub: "Zoom motorisé ET vision nocturne couleur sur la même caméra" }
     ]
   },
   usage_interieur: {
@@ -1628,6 +1630,14 @@ const CAM_PROFILES = {
     specs: ["1080p, champ de vision 162°, reconnaissance faciale locale par IA", "Sur piles (6xAA, environ 4 mois) ou raccordement filaire, carillon avec port USB-C qui fait aussi répéteur", "7 jours de stockage cloud HomeKit gratuits, stockage local sur carte microSD jusqu'à 512 Go dans le carillon", "Audio bidirectionnel avec changeur de voix, alarme anti-arrachement", "Étanche IP66, compatible HomeKit Secure Video, Alexa, Google Home"],
     asin: 'B0BPHTL7MG', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '512 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  switchbot_doorbell: {
+    brand: "SwitchBot", badge: "Porte d'entrée · Batterie ou solaire · Alternative",
+    title: "SwitchBot Sonnette Vidéo avec Moniteur",
+    desc: "Livrée avec un moniteur intérieur de 4,3 pouces qui sert à la fois d'écran, de relais WiFi et de stockage : reste fonctionnelle même en cas de coupure internet, sans écran de smartphone à sortir. Détection IA qui distingue vraiment personnes, animaux et véhicules.",
+    specs: ["2K, angle ultra large 165°, vision nocturne EN COULEUR jusqu'à 10m", "Détection IA personne/animal/véhicule/colis, moins de fausses alertes", "Batterie 5000mAh (6 à 19 mois), rechargeable USB-C, panneau solaire disponible en option", "Moniteur intérieur 4,3 pouces inclus, sert aussi de stockage (4 Go inclus, jusqu'à 512 Go en carte microSD), pas d'abonnement obligatoire", "Étanche IP65, audio bidirectionnel, compatible Alexa et Home Assistant"],
+    asin: 'B0F672TCXQ', nightVision: 'color', petDetection: true, packageDetection: true, maxSD: '512 Go', category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   }
 };
 
@@ -1738,6 +1748,10 @@ const CAM_FAMILY_BRAND_ALT = {
     Aqara: {
       pick: () => 'aqara_doorbell',
       note: () => "Ce modèle Aqara est avant tout pensé pour Apple HomeKit Secure Video, avec une reconnaissance faciale qui tourne en local sur l'appareil."
+    },
+    SwitchBot: {
+      pick: () => 'switchbot_doorbell',
+      note: () => "Livrée avec un moniteur intérieur qui sert aussi d'écran, de relais WiFi et de stockage local."
     }
   }
 };
@@ -2136,25 +2150,51 @@ function camRenderWizard() {
     const currentLabel = isMultiZone ? `${CAM_ZONE_PLACE_LABEL[camAnswers.scope === 'les_deux' ? camAnswers.zone_scope : camAnswers.scope] || ''} n°${zones.length + 1}` : '';
     const currentZoneHtml = camRenderZoneBlock(result.profile, result.baseCategory, camAnswers, currentLabel);
 
-    // Caméra spéciale additionnelle pour un kit NVR (zone avec besoin particulier)
+    // Vérifie si le système final utilise une seule marque ou plusieurs (plusieurs = plusieurs applis)
+    let multiBrandWarning = '';
+    if (isMultiZone || (camAnswers.scope === 'les_deux' && camAnswers.system_scale === 'grand')) {
+      const brandsUsed = new Set();
+      zones.forEach(z => {
+        const sharedAns = Object.assign({}, z.answersSnapshot, { ecosystem: camAnswers.ecosystem, existing_brand: camAnswers.existing_brand });
+        const dk = camResolveDisplayKeys(z.profile, z.baseCategory, sharedAns);
+        brandsUsed.add(CAM_PROFILES[dk.profileKeys[0]].brand);
+      });
+      const dkCurrent = camResolveDisplayKeys(result.profile, result.baseCategory, camAnswers);
+      brandsUsed.add(CAM_PROFILES[dkCurrent.profileKeys[0]].brand);
+      if (brandsUsed.size > 1) {
+        const hadBrandPref = camAnswers.existing_brand && camAnswers.existing_brand !== 'autre';
+        multiBrandWarning = hadBrandPref
+          ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Malgré ta préférence pour ${camAnswers.existing_brand}, ce système utilise finalement plusieurs marques (${[...brandsUsed].join(', ')}) car ${camAnswers.existing_brand} n'a pas de référence vérifiée pour toutes les zones, regarde les avertissements par zone ci-dessus pour savoir laquelle. Ça veut dire une appli en plus à gérer pour cette zone précise.</div>`
+          : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Ton système utilise actuellement plusieurs marques différentes (${[...brandsUsed].join(', ')}), ce qui veut dire une appli différente à ouvrir pour chaque marque, pas très pratique au quotidien. Si tu préfères tout centraliser dans une seule appli, réponds "je veux tout dans une seule appli" à la question sur l'écosystème et choisis une marque qui a des références vérifiées dans toutes tes zones (Reolink et Imou en ont le plus).</div>`;
+      } else if (brandsUsed.size === 1 && (zones.length > 0)) {
+        multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:var(--accent2)">✓ Toutes les caméras de ton système sont de la même marque (${[...brandsUsed][0]}), une seule appli à gérer.</div>`;
+      }
+    }
+
+    // Caméra spéciale additionnelle pour un kit NVR (zone avec besoin particulier : zoom, couleur, ou les deux)
     let kitAddonHtml = '';
-    if (camAnswers.kit_special === 'oui' && result.baseCategory === 'kit') {
-      const usedKit = (CAM_PAIR_OF[result.profile] || [result.profile])[0];
-      const addonMap = { kit: 'zoom', kit_annke: null, kit_imou: 'imou_zoom' };
+    const kitNeed = camAnswers.kit_special;
+    if (kitNeed && kitNeed !== 'non' && result.baseCategory === 'kit') {
+      const CAM_KIT_ADDON = {
+        kit: { zoom: 'zoom', couleur: 'poe_premium_color', zoom_couleur: 'zoom_color' },
+        kit_annke: { zoom: null, couleur: null, zoom_couleur: null },
+        kit_imou: { zoom: 'imou_zoom', couleur: 'imou_zoom', zoom_couleur: 'imou_zoom' }
+      };
       // Retrouve quel kit a réellement été retenu après le filtre marque
       const { profileKeys } = camResolveDisplayKeys(result.profile, result.baseCategory, camAnswers);
       const actualKit = profileKeys[0];
-      const addonKey = addonMap[actualKit];
+      const addonKey = (CAM_KIT_ADDON[actualKit] || {})[kitNeed];
+      const needLabel = { zoom: 'zoom motorisé', couleur: 'vision nocturne couleur', zoom_couleur: 'zoom motorisé et vision nocturne couleur' }[kitNeed];
       if (addonKey) {
         kitAddonHtml = `
       <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
-      <div class="cam-note" style="margin-bottom:10px;font-weight:600">➕ Caméra additionnelle pour la zone avec un besoin particulier</div>
-      <div class="cam-note" style="margin-bottom:14px">Cette caméra se raccorde en plus des 4 fournies dans le kit, sur le même enregistreur NVR (dans la limite de ses canaux disponibles, généralement 8).</div>
+      <div class="cam-note" style="margin-bottom:10px;font-weight:600">➕ Caméra additionnelle pour la zone qui a besoin de ${needLabel}</div>
+      <div class="cam-note" style="margin-bottom:14px">Cette caméra se raccorde en plus des caméras fixes fournies dans le kit, sur le même enregistreur NVR (dans la limite de ses canaux disponibles, généralement 8).</div>
       ${camRenderCard(CAM_PROFILES[addonKey], null, null, '', camAnswers)}
     `;
       } else {
         kitAddonHtml = `
-      <div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Je n'ai pas de caméra spécialisée (zoom, etc.) vérifiée compatible avec ce kit précis. Le NVR Reolink accepte en général d'autres caméras Reolink individuelles en plus du kit, dans la limite de ses canaux, mais je n'ai pas de référence Annke équivalente pour cette combinaison.</div>
+      <div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Je n'ai pas de caméra ${needLabel} vérifiée compatible avec ce kit précis (${CAM_PROFILES[actualKit].brand}). Le NVR Reolink accepte en général d'autres caméras Reolink individuelles en plus du kit, dans la limite de ses canaux, mais je n'ai pas de référence équivalente pour cette marque.</div>
     `;
       }
     }
@@ -2169,6 +2209,7 @@ function camRenderWizard() {
     container.innerHTML = `
       ${systemIntro}
       ${kitSystemNote}
+      ${multiBrandWarning}
       ${pastZonesHtml}
       ${zones.length > 0 ? '<hr style="border:none;border-top:1px solid var(--border);margin:18px 0">' : ''}
       ${currentZoneHtml}
