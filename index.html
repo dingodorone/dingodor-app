@@ -1130,6 +1130,27 @@ const CAM_STEPS = {
       { value: 'grand', label: "4 caméras ou plus", sub: "Système complet avec enregistreur (NVR) et disque dur, plus simple à gérer à cette échelle" }
     ]
   },
+  zone_scope: {
+    question: "Cette prochaine caméra, c'est pour l'intérieur ou l'extérieur ?",
+    options: [
+      { value: 'interieur', label: "Intérieur", sub: "Salon, chambre, une pièce à vivre" },
+      { value: 'exterieur', label: "Extérieur", sub: "Jardin, piscine, allée, façade, porte d'entrée, parking" }
+    ]
+  },
+  add_zone: {
+    question: "Veux-tu ajouter une autre caméra ou zone à ce système ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Configurer une caméra de plus (autre pièce, autre zone extérieure...)" },
+      { value: 'non', label: "Non, c'est tout", sub: "Passer aux réglages communs à tout le système" }
+    ]
+  },
+  kit_special_zone: {
+    question: "Une zone a-t-elle un besoin particulier en plus des caméras standards du kit (comme un grand terrain nécessitant un zoom) ?",
+    options: [
+      { value: 'oui', label: "Oui", sub: "Je veux une caméra spécifique en plus, raccordée au même enregistreur" },
+      { value: 'non', label: "Non", sub: "Les 4 caméras identiques du kit suffisent" }
+    ]
+  },
   usage_interieur: {
     question: "Que veux-tu surveiller principalement à l'intérieur ?",
     options: [
@@ -1765,19 +1786,13 @@ const CAM_ECOSYSTEM_TIPS = {
 let camAnswers = {};
 
 // Détermine soit la prochaine étape de catégorie (string), soit la catégorie de base ({baseCategory:'x'})
-function camCategoryStep(a) {
-  if (!a.scope) return 'scope';
-  if (a.scope === 'les_deux') {
-    if (!a.system_scale) return 'system_scale';
-    if (a.system_scale === 'grand') return { baseCategory: 'kit' };
-  }
-  const effectivePlace = (a.scope === 'interieur') ? 'interieur' : 'exterieur';
-  if (effectivePlace === 'interieur') {
+function camZoneCategoryStep(a, place) {
+  if (place === 'interieur') {
     if (!a.usage) return 'usage_interieur';
     if (!a.motorized) return 'motorized_indoor';
     return { baseCategory: a.motorized === 'fixe' ? 'interieur_fixe' : 'interieur_motorisee' };
   }
-  // exterieur (ou les_deux avec petit système, on traite d'abord l'extérieur, le plus structurant)
+  // exterieur
   if (!a.usage) return 'usage_exterieur';
   if (a.usage === 'porte') {
     if (!a.doorbell_power) return 'doorbell_power';
@@ -1799,6 +1814,35 @@ function camCategoryStep(a) {
   return { baseCategory: 'poe_fixe' };
 }
 
+function camCategoryStep(a) {
+  if (!a.scope) return 'scope';
+  if (a.scope === 'les_deux') {
+    if (!a.system_scale) return 'system_scale';
+    if (a.system_scale === 'grand') return { baseCategory: 'kit' };
+    // petit système : on configure une zone à la fois
+    if (!a.zone_scope) return 'zone_scope';
+    return camZoneCategoryStep(a, a.zone_scope);
+  }
+  return camZoneCategoryStep(a, a.scope);
+}
+
+// Champs propres à une zone/caméra précise, à remettre à zéro quand on passe à la zone suivante
+const CAM_ZONE_KEYS = ['zone_scope', 'usage', 'power', 'wifi', 'motorized', 'multi',
+  'doorbell_power', 'doorbell_chime', 'doorbell_street', 'budget', 'nv', 'tracking',
+  'animal', 'package', 'siren', 'intercom', 'color', 'add_zone'];
+
+// Résout uniquement le profil d'une zone (sans toucher aux questions transverses partagées)
+function camResolveZoneProfile(a) {
+  const place = a.scope === 'les_deux' ? a.zone_scope : a.scope;
+  const cat = camZoneCategoryStep(a, place);
+  if (typeof cat === 'string') return null;
+  if (!a.budget) return null;
+  const baseProfile = BUDGET_RESOLVE[cat.baseCategory][a.budget];
+  let profile = baseProfile;
+  if (a.nv === 'couleur' && CAM_COLOR_ALT[baseProfile]) profile = CAM_COLOR_ALT[baseProfile];
+  return { profile, baseCategory: cat.baseCategory, place, answersSnapshot: Object.assign({}, a) };
+}
+
 // Ajoute les questions transverses une fois la catégorie de base déterminée
 function camResolve(a) {
   const cat = camCategoryStep(a);
@@ -1812,9 +1856,12 @@ function camResolve(a) {
   if (!a.animal) return 'animal_detect';
   const needsPackageQ = (a.usage === 'porte' || a.usage === 'colis');
   if (needsPackageQ && !a.package) return 'package_detect';
+  if (cat.baseCategory === 'kit' && !a.kit_special) return 'kit_special_zone';
   if (!a.siren) return 'siren_detect';
   if (!a.intercom) return 'intercom_detect';
   if (!a.color) return 'color_pref';
+  const isMultiZone = a.scope === 'les_deux' && a.system_scale === 'petit';
+  if (isMultiZone && !a.add_zone) return 'add_zone';
   if (!a.retention) return 'retention';
   const builtIn = (CAM_PROFILES[profile] || {}).builtInStorage;
   if (!builtIn && !a.storage) return 'storage';
@@ -1824,15 +1871,27 @@ function camResolve(a) {
 }
 
 const CAM_STEP_KEY_MAP = {
-  scope: 'scope', system_scale: 'system_scale', usage_interieur: 'usage', usage_exterieur: 'usage',
+  scope: 'scope', system_scale: 'system_scale', zone_scope: 'zone_scope', add_zone: 'add_zone',
+  usage_interieur: 'usage', usage_exterieur: 'usage',
   power: 'power', multi: 'multi', motorized_indoor: 'motorized', motorized_poe: 'motorized', motorized_solar: 'motorized',
   wifi: 'wifi', budget: 'budget', nightvision: 'nv', tracking_detect: 'tracking', animal_detect: 'animal', package_detect: 'package', color_pref: 'color',
-  siren_detect: 'siren', intercom_detect: 'intercom',
+  siren_detect: 'siren', intercom_detect: 'intercom', kit_special_zone: 'kit_special',
   doorbell_power: 'doorbell_power', doorbell_chime: 'doorbell_chime', doorbell_street: 'doorbell_street',
   retention: 'retention', storage: 'storage', ecosystem: 'ecosystem', existing_brand: 'existing_brand'
 };
 
 function camAnswerStep(key, value) {
+  if (key === 'add_zone' && value === 'oui') {
+    // On enregistre la zone actuelle avant de passer à la suivante
+    const zoneResult = camResolveZoneProfile(camAnswers);
+    if (zoneResult) {
+      camAnswers.zones = camAnswers.zones || [];
+      camAnswers.zones.push(zoneResult);
+    }
+    CAM_ZONE_KEYS.forEach(k => delete camAnswers[k]);
+    camRenderWizard();
+    return;
+  }
   camAnswers[key] = value;
   camRenderWizard();
 }
@@ -1905,46 +1964,47 @@ function camNvrNasBlock(p) {
     </div>`;
 }
 
-function camRenderCard(p, extraBadge, baseCategory, extraNote) {
+function camRenderCard(p, extraBadge, baseCategory, extraNote, ansOverride) {
+  const ans = ansOverride || camAnswers;
   const nvNote = p.nightVision === 'color'
     ? `<li style="color:var(--accent2)">✓ Vision nocturne EN COULEUR</li>`
     : `<li style="color:var(--muted)">ℹ️ Vision nocturne infrarouge classique, noir et blanc</li>`;
   let animalNote = '';
-  if (camAnswers.animal === 'oui') {
+  if (ans.animal === 'oui') {
     animalNote = p.petDetection
       ? `<li style="color:var(--accent2)">✓ Détection IA locale des animaux confirmée : tu reçois une notification étiquetée "animal", pas besoin d'abonnement cloud pour cette fonction. À noter : ça ne réduit pas les alertes en soi, ça les identifie. Pour limiter les notifications, active plutôt l'option "personne uniquement".</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas de détection animaux confirmée en local pour ce modèle. Certaines marques (comme TP-Link Tapo) proposent cette fonction seulement via un abonnement cloud payant, vérifie sur la fiche produit.</li>`;
   }
   let packageNote = '';
-  if (camAnswers.package === 'oui') {
+  if (ans.package === 'oui') {
     packageNote = p.packageDetection
       ? `<li style="color:var(--accent2)">✓ Détection de colis confirmée</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas de détection de colis confirmée pour ce modèle, mais la détection de personne suffit généralement à te prévenir qu'un livreur approche.</li>`;
   }
   let sirenNote = '';
-  if (camAnswers.siren === 'oui') {
+  if (ans.siren === 'oui') {
     sirenNote = p.hasSiren
       ? `<li style="color:var(--accent2)">✓ Alarme sonore/sirène intégrée confirmée</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas de sirène intégrée confirmée pour ce modèle.</li>`;
   }
   let intercomNote = '';
-  if (camAnswers.intercom === 'oui') {
+  if (ans.intercom === 'oui') {
     intercomNote = p.hasIntercom
       ? `<li style="color:var(--accent2)">✓ Audio bidirectionnel confirmé, micro et haut-parleur intégrés</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas d'audio bidirectionnel confirmé pour ce modèle, tu pourras probablement voir mais pas parler à travers la caméra.</li>`;
   }
-  const colorNote = (camAnswers.color && camAnswers.color !== 'peu_importe')
+  const colorNote = (ans.color && ans.color !== 'peu_importe')
     ? `<li style="color:var(--muted)">🎨 Je n'ai pas vérifié individuellement la couleur exacte de cette référence précise, certains modèles existent en blanc et noir sous des références différentes. Vérifie le coloris sur la fiche produit avant d'acheter.</li>`
     : '';
   let trackingNote = '';
-  if (camAnswers.tracking === 'oui') {
+  if (ans.tracking === 'oui') {
     trackingNote = p.hasAutoTracking
       ? `<li style="color:var(--accent2)">✓ Suivi automatique de personne confirmé, la caméra pivote toute seule pour garder le sujet dans le cadre</li>`
       : `<li style="color:var(--muted)">ℹ️ Pas de suivi automatique confirmé pour ce modèle, elle pivote mais ne suit pas la personne toute seule.</li>`;
   }
   let haNote = '';
   let haHubBlock = '';
-  if (camAnswers.ecosystem === 'home_assistant') {
+  if (ans.ecosystem === 'home_assistant') {
     if (p.haCompatible && p.needsHomeHub) {
       haNote = `<li style="color:var(--accent2)">✓ Compatible Home Assistant, confirmé par le partenariat officiel Reolink, mais nécessite un Reolink Home Hub (accessoire vendu séparément) comme passerelle pour cette caméra sur batterie</li>`;
       haHubBlock = `
@@ -1961,19 +2021,19 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
       haNote = `<li style="color:#ff8a65">⚠️ Pas de compatibilité Home Assistant confirmée pour ce modèle, même avec un accessoire</li>`;
     }
   }
-  const brandMatchNote = (camAnswers.existing_brand && camAnswers.existing_brand === p.brand)
+  const brandMatchNote = (ans.existing_brand && ans.existing_brand === p.brand)
     ? `<li style="color:var(--accent2)">✓ Compatible avec ton écosystème ${p.brand} existant, même appli</li>`
     : '';
-  const usageTip = CAM_USAGE_TIPS[camAnswers.usage] || '';
+  const usageTip = CAM_USAGE_TIPS[ans.usage] || '';
   const installTip = p.category === 'exterieur' ? CAM_INSTALL_TIP : '';
   const aiTip = p.longRange ? CAM_AI_LONGDIST_TIP : '';
   const zoomTip = p.zoomTradeoff ? CAM_ZOOM_TRADEOFF_TIP : '';
-  const ecoTip = CAM_ECOSYSTEM_TIPS[camAnswers.ecosystem] || '';
-  const noAltTip = (baseCategory && CAM_NO_BUDGET_ALT.has(baseCategory) && camAnswers.budget !== 'peu_importe') ? CAM_NO_ALT_TIP : '';
+  const ecoTip = CAM_ECOSYSTEM_TIPS[ans.ecosystem] || '';
+  const noAltTip = (baseCategory && CAM_NO_BUDGET_ALT.has(baseCategory) && ans.budget !== 'peu_importe') ? CAM_NO_ALT_TIP : '';
   const brandCompromiseTip = extraNote ? `⚖️ ${extraNote}` : '';
-  const streetTip = camAnswers.doorbell_street === 'rue' ? CAM_STREET_LEGAL_TIP : '';
+  const streetTip = ans.doorbell_street === 'rue' ? CAM_STREET_LEGAL_TIP : '';
   let chimeTip = '';
-  if (camAnswers.doorbell_chime === 'oui') {
+  if (ans.doorbell_chime === 'oui') {
     chimeTip = baseCategory === 'doorbell_battery' ? CAM_CHIME_BATTERY_TIP : (baseCategory === 'doorbell' ? CAM_CHIME_WIRED_TIP : '');
   }
   const tipsBlock = [usageTip, installTip, aiTip, zoomTip, ecoTip, noAltTip, streetTip, chimeTip, brandCompromiseTip].filter(Boolean).map(t => `<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">${t}</div>`).join('');
@@ -1988,10 +2048,70 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote) {
         <a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
         <a class="cam-buy-btn" href="${camLinkBE(p.asin)}" target="_blank" rel="noopener">🇧🇪 Voir sur Amazon.be</a>
       </div>
-      ${camStorageBlock(p, camAnswers.storage, camAnswers.retention)}
+      ${camStorageBlock(p, ans.storage, ans.retention)}
       ${haHubBlock}
     </div>`;
 }
+
+// Calcule la liste de profils à afficher pour un profil/catégorie donnés, en tenant compte
+// de la préférence de marque et du filtre Home Assistant. Réutilisé pour la zone en cours
+// et pour chaque zone déjà accumulée dans un système multi-caméras.
+function camResolveDisplayKeys(profile, baseCategory, ans) {
+  const defaultPair = CAM_PAIR_OF[profile] || [profile];
+  let profileKeys = defaultPair;
+  let brandNote = '';
+  let brandNoMatch = false;
+  const wantsSingleApp = ans.ecosystem === 'une_app';
+  const hasBrandPref = ans.existing_brand && ans.existing_brand !== 'autre';
+
+  if (hasBrandPref) {
+    const exactMatch = defaultPair.find(k => CAM_PROFILES[k].brand === ans.existing_brand);
+    if (exactMatch) {
+      profileKeys = wantsSingleApp ? [exactMatch] : [exactMatch, ...defaultPair.filter(k => k !== exactMatch)];
+    } else {
+      const family = CAM_FAMILY_OF_BASECATEGORY[baseCategory];
+      const familyAlt = (CAM_FAMILY_BRAND_ALT[family] || {})[ans.existing_brand];
+      if (familyAlt) {
+        const altKey = familyAlt.pick(ans, baseCategory);
+        brandNote = familyAlt.note(ans, baseCategory);
+        profileKeys = wantsSingleApp ? [altKey] : [altKey, profile];
+      } else {
+        profileKeys = [profile];
+        brandNoMatch = true;
+      }
+    }
+  }
+  profileKeys = camApplyEcosystemFilter(profileKeys, ans);
+  return { profileKeys, brandNote, brandNoMatch, hasBrandPref };
+}
+
+// Construit le HTML d'une zone (ses cartes + ses éventuels avertissements), pour la zone en cours
+// comme pour les zones déjà accumulées dans le système
+function camRenderZoneBlock(profile, baseCategory, ans, zoneLabel) {
+  const { profileKeys, brandNote, brandNoMatch, hasBrandPref } = camResolveDisplayKeys(profile, baseCategory, ans);
+  const noHaCompatible = ans.ecosystem === 'home_assistant' && profileKeys.every(k => !CAM_PROFILES[k].haCompatible);
+  const cardsHtml = profileKeys.map((key, i) => {
+    const isAlt = hasBrandPref && CAM_PROFILES[key].brand === ans.existing_brand;
+    const badge = profileKeys.length > 1 ? (i === 0 ? '🅰️ Option 1' : '🅱️ Option 2, autre marque') : null;
+    const extraNote = isAlt ? brandNote : '';
+    return camRenderCard(CAM_PROFILES[key], badge, baseCategory, extraNote, ans);
+  }).join('');
+  const compareNote = profileKeys.length > 1
+    ? `<div class="cam-note" style="margin-bottom:14px">Deux marques différentes pour le même besoin, à toi de choisir selon ton budget et l'appli ou l'écosystème que tu préfères.</div>`
+    : '';
+  const brandMismatchWarning = brandNoMatch
+    ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Je n'ai pas de modèle ${ans.existing_brand} vérifié pour ce besoin précis. Le vrai compromis : soit tu utilises le modèle ci-dessous, avec une appli en plus à gérer pour cette caméra, soit tu envisages Home Assistant pour centraliser plusieurs marques dans un seul tableau de bord, ça demande un peu plus de mise en place technique, soit tu me dis le modèle ${ans.existing_brand} précis que tu as en tête et je vérifie s'il correspond.</div>`
+    : '';
+  const haWarning = noHaCompatible
+    ? (profile === 'solar_4g'
+        ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Les caméras 4G/LTE ne sont compatibles avec Home Assistant chez aucun fabricant que j'ai vérifié, même avec un hub. Le vrai compromis : soit tu apportes du WiFi à cet endroit (répéteur ou point d'accès) pour pouvoir utiliser une caméra WiFi Reolink compatible à la place, soit tu gardes cette caméra 4G mais tu la pilotes uniquement via l'appli Reolink, sans intégration Home Assistant pour celle-ci.</div>`
+        : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Aucune caméra de cette catégorie n'a de compatibilité Home Assistant confirmée, même avec un accessoire. Le vrai compromis : si Home Assistant est indispensable, oriente-toi plutôt vers une caméra filaire PoE (comme les Reolink RLC-xxx) ou une caméra WiFi/batterie Reolink avec Home Hub, qui elles sont confirmées compatibles. Sinon, cette caméra reste utilisable normalement via son appli propre, juste pas dans Home Assistant.</div>`)
+    : '';
+  const label = zoneLabel ? `<div class="cam-note" style="margin-bottom:10px;font-weight:600">${zoneLabel}</div>` : '';
+  return `${label}${compareNote}${brandMismatchWarning}${haWarning}${cardsHtml}`;
+}
+
+const CAM_ZONE_PLACE_LABEL = { interieur: '🏠 Zone intérieure', exterieur: '🌳 Zone extérieure' };
 
 function camRenderWizard() {
   const container = document.getElementById('cam-wizard');
@@ -1999,84 +2119,60 @@ function camRenderWizard() {
   const result = camResolve(camAnswers);
 
   if (typeof result === 'object') {
-    const defaultPair = CAM_PAIR_OF[result.profile] || [result.profile];
-    let profileKeys = defaultPair;
-    let brandNote = '';
-    let brandNoMatch = false;
-    const wantsSingleApp = camAnswers.ecosystem === 'une_app';
-    const hasBrandPref = camAnswers.existing_brand && camAnswers.existing_brand !== 'autre';
+    const isMultiZone = camAnswers.scope === 'les_deux' && camAnswers.system_scale === 'petit';
+    const zones = camAnswers.zones || [];
 
-    if (hasBrandPref) {
-      const exactMatch = defaultPair.find(k => CAM_PROFILES[k].brand === camAnswers.existing_brand);
-      if (exactMatch) {
-        profileKeys = wantsSingleApp ? [exactMatch] : [exactMatch, ...defaultPair.filter(k => k !== exactMatch)];
-      } else {
-        const family = CAM_FAMILY_OF_BASECATEGORY[result.baseCategory];
-        const familyAlt = (CAM_FAMILY_BRAND_ALT[family] || {})[camAnswers.existing_brand];
-        if (familyAlt) {
-          const altKey = familyAlt.pick(camAnswers, result.baseCategory);
-          brandNote = familyAlt.note(camAnswers, result.baseCategory);
-          profileKeys = wantsSingleApp ? [altKey] : [altKey, result.profile];
-        } else {
-          profileKeys = [result.profile];
-          brandNoMatch = true;
-        }
-      }
-    }
+    // Rendu des zones déjà accumulées (chacune avec ses propres réponses pour les notes)
+    const pastZonesHtml = zones.map((z, i) => {
+      const sharedAns = Object.assign({}, z.answersSnapshot, {
+        ecosystem: camAnswers.ecosystem, existing_brand: camAnswers.existing_brand,
+        storage: camAnswers.storage, retention: camAnswers.retention
+      });
+      const label = `${CAM_ZONE_PLACE_LABEL[z.place] || ''} n°${i + 1}`;
+      return camRenderZoneBlock(z.profile, z.baseCategory, sharedAns, label);
+    }).join('<hr style="border:none;border-top:1px solid var(--border);margin:18px 0">');
 
-    profileKeys = camApplyEcosystemFilter(profileKeys, camAnswers);
-    const noHaCompatible = camAnswers.ecosystem === 'home_assistant' && profileKeys.every(k => !CAM_PROFILES[k].haCompatible);
-    const cardsHtml = profileKeys.map((key, i) => {
-      const isAlt = hasBrandPref && CAM_PROFILES[key].brand === camAnswers.existing_brand;
-      const badge = profileKeys.length > 1 ? (i === 0 ? '🅰️ Option 1' : '🅱️ Option 2, autre marque') : null;
-      const extraNote = isAlt ? brandNote : '';
-      return camRenderCard(CAM_PROFILES[key], badge, result.baseCategory, extraNote);
-    }).join('');
-    const compareNote = profileKeys.length > 1
-      ? `<div class="cam-note" style="margin-bottom:14px">Deux marques différentes pour le même besoin, à toi de choisir selon ton budget et l'appli ou l'écosystème que tu préfères.</div>`
-      : '';
-    const brandMismatchWarning = brandNoMatch
-      ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Je n'ai pas de modèle ${camAnswers.existing_brand} vérifié pour ce besoin précis. Le vrai compromis : soit tu utilises le modèle ci-dessous, avec une appli en plus à gérer pour cette caméra, soit tu envisages Home Assistant pour centraliser plusieurs marques dans un seul tableau de bord, ça demande un peu plus de mise en place technique, soit tu me dis le modèle ${camAnswers.existing_brand} précis que tu as en tête et je vérifie s'il correspond.</div>`
-      : '';
-    const haWarning = noHaCompatible
-      ? (result.profile === 'solar_4g'
-          ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Les caméras 4G/LTE ne sont compatibles avec Home Assistant chez aucun fabricant que j'ai vérifié, même avec un hub. Le vrai compromis : soit tu apportes du WiFi à cet endroit (répéteur ou point d'accès) pour pouvoir utiliser une caméra WiFi Reolink compatible à la place, soit tu gardes cette caméra 4G mais tu la pilotes uniquement via l'appli Reolink, sans intégration Home Assistant pour celle-ci.</div>`
-          : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Aucune caméra de cette catégorie n'a de compatibilité Home Assistant confirmée, même avec un accessoire. Le vrai compromis : si Home Assistant est indispensable, oriente-toi plutôt vers une caméra filaire PoE (comme les Reolink RLC-xxx) ou une caméra WiFi/batterie Reolink avec Home Hub, qui elles sont confirmées compatibles. Sinon, cette caméra reste utilisable normalement via son appli propre, juste pas dans Home Assistant.</div>`)
-      : '';
-    let bothScopeBlock = '';
-    if (camAnswers.scope === 'les_deux') {
-      if (camAnswers.system_scale === 'grand') {
-        bothScopeBlock = `
-      <div class="cam-note" style="margin-bottom:14px">🏠🌳 Pour 4 caméras ou plus entre intérieur et extérieur, un système avec enregistreur (NVR) est la solution la plus simple à gérer : tu répartis les caméras du kit entre les pièces et l'extérieur, tout arrive dans une seule appli et un seul disque dur.</div>
+    // Rendu de la zone en cours (celle qu'on vient de terminer)
+    const currentLabel = isMultiZone ? `${CAM_ZONE_PLACE_LABEL[camAnswers.scope === 'les_deux' ? camAnswers.zone_scope : camAnswers.scope] || ''} n°${zones.length + 1}` : '';
+    const currentZoneHtml = camRenderZoneBlock(result.profile, result.baseCategory, camAnswers, currentLabel);
+
+    // Caméra spéciale additionnelle pour un kit NVR (zone avec besoin particulier)
+    let kitAddonHtml = '';
+    if (camAnswers.kit_special === 'oui' && result.baseCategory === 'kit') {
+      const usedKit = (CAM_PAIR_OF[result.profile] || [result.profile])[0];
+      const addonMap = { kit: 'zoom', kit_annke: null, kit_imou: 'imou_zoom' };
+      // Retrouve quel kit a réellement été retenu après le filtre marque
+      const { profileKeys } = camResolveDisplayKeys(result.profile, result.baseCategory, camAnswers);
+      const actualKit = profileKeys[0];
+      const addonKey = addonMap[actualKit];
+      if (addonKey) {
+        kitAddonHtml = `
+      <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
+      <div class="cam-note" style="margin-bottom:10px;font-weight:600">➕ Caméra additionnelle pour la zone avec un besoin particulier</div>
+      <div class="cam-note" style="margin-bottom:14px">Cette caméra se raccorde en plus des 4 fournies dans le kit, sur le même enregistreur NVR (dans la limite de ses canaux disponibles, généralement 8).</div>
+      ${camRenderCard(CAM_PROFILES[addonKey], null, null, '', camAnswers)}
     `;
       } else {
-        const extBrand = CAM_PROFILES[profileKeys[0]].brand;
-        let complementKey = 'tapo_premium';
-        let complementNote = '';
-        if (extBrand === 'TP-Link Tapo') {
-          complementKey = 'tapo_premium';
-        } else {
-          const indoorAlt = (CAM_FAMILY_BRAND_ALT.interieur || {})[extBrand];
-          if (indoorAlt) {
-            complementKey = indoorAlt.pick({ motorized: 'motorisee', budget: 'peu_importe' }, 'interieur_motorisee');
-            complementNote = `Même marque (${extBrand}) que ta caméra extérieure, une seule appli pour tout gérer.`;
-          } else {
-            complementNote = `${extBrand} n'a pas de caméra intérieure vérifiée dans ce guide, voici Tapo comme complément neutre, il te faudra une appli en plus pour celle-ci.`;
-          }
-        }
-        bothScopeBlock = `
-      <div class="cam-note" style="margin-bottom:14px">🏠🌳 Tu as choisi intérieur ET extérieur. Voici d'abord la recommandation extérieure, la plus structurante, puis un complément intérieur.</div>
-      ${camRenderCard(CAM_PROFILES[complementKey], '🏠 Complément intérieur', null, complementNote)}
-      <div class="cam-note" style="margin-bottom:14px">Pour affiner ce complément intérieur (budget, fixe ou motorisée, animaux), relance le guide en choisissant Intérieur uniquement.</div>
+        kitAddonHtml = `
+      <div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Je n'ai pas de caméra spécialisée (zoom, etc.) vérifiée compatible avec ce kit précis. Le NVR Reolink accepte en général d'autres caméras Reolink individuelles en plus du kit, dans la limite de ses canaux, mais je n'ai pas de référence Annke équivalente pour cette combinaison.</div>
     `;
       }
     }
+
+    const systemIntro = (isMultiZone && (zones.length > 0)) || (camAnswers.scope === 'les_deux' && camAnswers.system_scale === 'grand')
+      ? `<div class="cam-note" style="margin-bottom:14px">📋 Voici ton système complet, zone par zone :</div>`
+      : '';
+    const kitSystemNote = (camAnswers.scope === 'les_deux' && camAnswers.system_scale === 'grand')
+      ? `<div class="cam-note" style="margin-bottom:14px">🏠🌳 Pour 4 caméras ou plus entre intérieur et extérieur, un système avec enregistreur (NVR) est la solution la plus simple à gérer : tu répartis les caméras du kit entre les pièces et l'extérieur, tout arrive dans une seule appli et un seul disque dur.</div>`
+      : '';
+
     container.innerHTML = `
-      ${compareNote}
-      ${brandMismatchWarning}
-      ${haWarning}
-      ${cardsHtml}
-      ${bothScopeBlock}
+      ${systemIntro}
+      ${kitSystemNote}
+      ${pastZonesHtml}
+      ${zones.length > 0 ? '<hr style="border:none;border-top:1px solid var(--border);margin:18px 0">' : ''}
+      ${currentZoneHtml}
+      ${kitAddonHtml}
       <button class="cam-restart-btn" onclick="camRestart()">↺ Recommencer le guide</button>
       <div class="cam-note">Liens affiliés Amazon, le prix reste le même pour toi, ça soutient le blog 🙏</div>
     `;
