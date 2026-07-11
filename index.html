@@ -1934,6 +1934,12 @@ function camRestart() {
   camRenderWizard();
 }
 
+function camEditBrandChoice() {
+  delete camAnswers.ecosystem;
+  delete camAnswers.existing_brand;
+  camRenderWizard();
+}
+
 // Applique la préférence de marque et le filtre Home Assistant sur la liste de profils à afficher
 function camApplyEcosystemFilter(profileKeys, a) {
   let keys = [...profileKeys];
@@ -2224,7 +2230,10 @@ function camRenderWizard() {
         const hadBrandPref = camAnswers.existing_brand && camAnswers.existing_brand !== 'autre';
         multiBrandWarning = hadBrandPref
           ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Malgré ta préférence pour ${camAnswers.existing_brand}, ce système utilise finalement plusieurs marques (${[...brandsUsed].join(', ')}) car ${camAnswers.existing_brand} n'a pas de référence vérifiée pour toutes les zones, regarde les avertissements par zone ci-dessus pour savoir laquelle. Ça veut dire une appli en plus à gérer pour cette zone précise.</div>`
-          : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Ton système utilise actuellement plusieurs marques différentes (${[...brandsUsed].join(', ')}), ce qui veut dire une appli différente à ouvrir pour chaque marque, pas très pratique au quotidien. Si tu préfères tout centraliser dans une seule appli, réponds "je veux tout dans une seule appli" à la question sur l'écosystème et choisis une marque qui a des références vérifiées dans toutes tes zones (Reolink et Imou en ont le plus).</div>`;
+          : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">
+              ⚠️ Ton système utilise actuellement plusieurs marques différentes (${[...brandsUsed].join(', ')}), ce qui veut dire une appli différente à ouvrir pour chaque marque, pas très pratique au quotidien.
+              <button class="cam-restart-btn" onclick="camEditBrandChoice()" style="margin-top:10px;padding:9px">🎯 Choisir une seule marque pour tout le système</button>
+            </div>`;
       } else if (brandsUsed.size === 1 && (zones.length > 0)) {
         multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:var(--accent2)">✓ Toutes les caméras de ton système sont de la même marque (${[...brandsUsed][0]}), une seule appli à gérer.</div>`;
       }
