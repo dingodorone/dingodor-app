@@ -1113,6 +1113,7 @@ const CAM_TAG_BE = 'dingodor00e-21';
 
 function camLinkFR(asin) { return `https://www.amazon.fr/dp/${asin}?tag=${CAM_TAG_FR}`; }
 function camLinkBE(asin) { return `https://www.amazon.com.be/dp/${asin}?tag=${CAM_TAG_BE}`; }
+function camLinkSwitchBot(productPath) { return `https://eu.switch-bot.com/fr/products/${productPath}?sca_ref=2274537.x1K7OdVgTO&utm_source=uppromote&utm_medium=affiliate&utm_campaign=2274537`; }
 
 const CAM_STEPS = {
   scope: {
@@ -1639,6 +1640,15 @@ const CAM_PROFILES = {
     specs: ["2K, angle ultra large 165°, vision nocturne EN COULEUR jusqu'à 10m", "Détection IA personne/animal/véhicule/colis, moins de fausses alertes", "Batterie 5000mAh (6 à 19 mois), rechargeable USB-C, panneau solaire disponible en option", "Moniteur intérieur 4,3 pouces inclus, sert aussi de stockage (4 Go inclus, jusqu'à 512 Go en carte microSD), pas d'abonnement obligatoire", "Étanche IP65, audio bidirectionnel, compatible Alexa et Home Assistant"],
     asin: 'B0F672TCXQ', nightVision: 'color', petDetection: true, packageDetection: true, maxSD: '512 Go', category: 'exterieur', haCompatible: true, hasSiren: false, hasIntercom: true,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
+  },
+  switchbot_outdoor_ptz: {
+    brand: "SwitchBot", badge: "Extérieur · Motorisée · Alternative",
+    title: "SwitchBot Outdoor Pan/Tilt Cam 3K",
+    desc: "Alternative motorisée à la Reolink RLC-823A ou à l'Imou Cruiser 2 AI : rotation 360° horizontale et 90° verticale, alimentation secteur, et surtout un flux RTSP compatible confirmé, rare chez SwitchBot.",
+    specs: ["3K/5MP, rotation motorisée 360° horizontale et 90° verticale", "Alimentation secteur (12V), pas de batterie ni de PoE", "Compatible RTSP confirmé (Home Assistant, Frigate AI), en plus de l'appli SwitchBot", "Compatible Alexa et Google Home", "Résiste de -20°C à 45°C"],
+    store: 'switchbot', storePath: 'outdoor-ptc-3k5mp',
+    nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', longRange: true, haCompatible: true, hasSiren: false, hasIntercom: false, hasAutoTracking: false,
+    sdAsin: null
   }
 };
 
@@ -1713,6 +1723,10 @@ const CAM_FAMILY_BRAND_ALT = {
     EZVIZ: {
       pick: () => 'ezviz_zoom',
       note: (a, bc) => bc !== 'zoom' ? "EZVIZ n'a qu'un modèle motorisé avec suivi automatique vérifié ici, pas de version fixe, mais tu peux ignorer le suivi." : ''
+    },
+    SwitchBot: {
+      pick: () => 'switchbot_outdoor_ptz',
+      note: (a, bc) => bc !== 'zoom' ? "SwitchBot n'a qu'un modèle motorisé vérifié ici, pas de version fixe, mais tu peux ignorer la rotation. Pas de suivi automatique de personne ni d'audio bidirectionnel confirmés sur ce modèle." : "Pas de suivi automatique de personne ni d'audio bidirectionnel confirmés sur ce modèle."
     }
   },
   kit: {
@@ -2099,8 +2113,10 @@ function camRenderCard(p, extraBadge, baseCategory, extraNote, ansOverride) {
       <ul class="cam-result-specs">${p.specs.map(s => `<li>${s}</li>`).join('')}${nvNote}${trackingNote}${animalNote}${packageNote}${sirenNote}${intercomNote}${colorNote}${haNote}${brandMatchNote}</ul>
       <div style="margin-bottom:4px">${tipsBlock}</div>
       <div class="cam-buy-row">
-        <a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
-        <a class="cam-buy-btn" href="${camLinkBE(p.asin)}" target="_blank" rel="noopener">🇧🇪 Voir sur Amazon.be</a>
+        ${p.store === 'switchbot'
+          ? `<a class="cam-buy-btn" href="${camLinkSwitchBot(p.storePath)}" target="_blank" rel="noopener" style="flex:1 1 100%">🛒 Voir sur SwitchBot.com (-10% avec ce lien)</a>`
+          : `<a class="cam-buy-btn" href="${camLinkFR(p.asin)}" target="_blank" rel="noopener">🇫🇷 Voir sur Amazon.fr</a>
+        <a class="cam-buy-btn" href="${camLinkBE(p.asin)}" target="_blank" rel="noopener">🇧🇪 Voir sur Amazon.be</a>`}
       </div>
       ${camStorageBlock(p, ans.storage, ans.retention)}
       ${chimeAccessoryBlock}
@@ -2262,6 +2278,13 @@ function camRenderWizard() {
   }
 
   const step = CAM_STEPS[result];
+  let questionText = step.question;
+  if (result === 'zone_scope') {
+    const zoneCount = (camAnswers.zones || []).length;
+    questionText = zoneCount === 0
+      ? "Cette première caméra, c'est pour l'intérieur ou l'extérieur ?"
+      : "Cette prochaine caméra, c'est pour l'intérieur ou l'extérieur ?";
+  }
   const answeredCount = Object.keys(camAnswers).length;
   const totalSteps = 12; // approx depth for progress bar
   let dots = '';
@@ -2272,7 +2295,7 @@ function camRenderWizard() {
   container.innerHTML = `
     <div class="cam-progress">${dots}</div>
     ${answeredCount > 0 ? `<button class="cam-back" onclick="camRestart()">↺ Recommencer</button>` : ''}
-    <div class="cam-question">${step.question}</div>
+    <div class="cam-question">${questionText}</div>
     <div class="cam-options">
       ${step.options.map(o => `
         <button class="cam-option" onclick="camAnswerStep('${CAM_STEP_KEY_MAP[result]}', '${o.value}')">
