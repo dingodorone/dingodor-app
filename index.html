@@ -966,20 +966,22 @@ function loadMoreArticles() {
 }
 
 const promos = [
-  // AliExpress France - 01/07 au 07/07/2026
-  { code: "CDFR06", brand: "AliExpress 🇫🇷", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR11", brand: "AliExpress 🇫🇷", desc: "11€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR20", brand: "AliExpress 🇫🇷", desc: "20€ dès 149€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR30", brand: "AliExpress 🇫🇷", desc: "30€ dès 239€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR45", brand: "AliExpress 🇫🇷", desc: "45€ dès 359€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "CDFR60", brand: "AliExpress 🇫🇷", desc: "60€ dès 479€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  // AliExpress Belgique - 01/07 au 07/07/2026
-  { code: "VIOCD06", brand: "AliExpress 🇧🇪", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOCD11", brand: "AliExpress 🇧🇪", desc: "11€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOCD20", brand: "AliExpress 🇧🇪", desc: "20€ dès 149€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOCD30", brand: "AliExpress 🇧🇪", desc: "30€ dès 239€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOCD45", brand: "AliExpress 🇧🇪", desc: "45€ dès 359€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "VIOCD60", brand: "AliExpress 🇧🇪", desc: "60€ dès 479€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress France - 13/07 au 19/07/2026
+  { code: "FRVS02", brand: "AliExpress 🇫🇷", desc: "2€ dès 18€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS06", brand: "AliExpress 🇫🇷", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS11", brand: "AliExpress 🇫🇷", desc: "11€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS20", brand: "AliExpress 🇫🇷", desc: "20€ dès 149€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS30", brand: "AliExpress 🇫🇷", desc: "30€ dès 239€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS45", brand: "AliExpress 🇫🇷", desc: "45€ dès 359€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "FRVS60", brand: "AliExpress 🇫🇷", desc: "60€ dès 479€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  // AliExpress Belgique - 13/07 au 19/07/2026
+  { code: "VIO02VS", brand: "AliExpress 🇧🇪", desc: "2€ dès 18€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO06VS", brand: "AliExpress 🇧🇪", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO11VS", brand: "AliExpress 🇧🇪", desc: "11€ dès 79€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO20VS", brand: "AliExpress 🇧🇪", desc: "20€ dès 149€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO30VS", brand: "AliExpress 🇧🇪", desc: "30€ dès 239€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO45VS", brand: "AliExpress 🇧🇪", desc: "45€ dès 359€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
+  { code: "VIO60VS", brand: "AliExpress 🇧🇪", desc: "60€ dès 479€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
   // SwitchBot
   { code: "10UPX1K7ODVGTO", brand: "SwitchBot Amazon", desc: "10% de réduction site officiel", url: "https://amzn.to/3nsAaWu" },
   { code: "10Dingodor", brand: "SwitchBot Officiel", desc: "Code promo exclusif Dingodor", url: "https://www.switch-bot.com/?sca_ref=1102794.rW5weNSejk" },
