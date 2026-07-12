@@ -758,7 +758,7 @@
 <!-- SECTION PROMOS -->
 <div class="section" id="sec-promos">
   <div class="hero" style="margin-bottom:20px">
-    <div class="hero-label">🛒 01 – 07 juillet 2026</div>
+    <div class="hero-label">🛒 13 – 19 juillet 2026</div>
     <h2>Codes promo du moment</h2>
     <p>AliExpress 🇫🇷🇧🇪, SwitchBot, GeekBuying, GamsGo. Cliquez sur le code pour le copier.</p>
   </div>
@@ -1523,6 +1523,14 @@ const CAM_PROFILES = {
     asin: 'B09DPQBCKS', nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: '128 Go', category: 'exterieur', haCompatible: false, hasSiren: false, hasIntercom: false,
     sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   },
+  solar_4g_pt: {
+    brand: "Reolink", badge: "100% autonome · 4G + Solaire · Motorisée",
+    title: "Reolink TrackMix LTE + Panneau solaire",
+    desc: "Version motorisée et à double objectif du Go Plus : un grand angle et un téléobjectif combinés, avec zoom hybride 6X et suivi automatique, fonctionnant avec une carte SIM 4G/LTE.",
+    specs: ["Double objectif (grand angle + téléobjectif), zoom hybride 6X, motorisée avec suivi automatique", "Connexion 4G/LTE via carte SIM non incluse, abonnement data requis", "Batterie et panneau solaire fournis, vision nocturne EN COULEUR (projecteurs)", "Détection IA personne/véhicule/animal, audio bidirectionnel", "Appli Reolink"],
+    asin: 'B0BWRGYXMK', nightVision: 'color', petDetection: true, packageDetection: false, maxSD: '256 Go', category: 'exterieur', longRange: true, haCompatible: false, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
+    sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
+  },
   kit_imou: {
     brand: "Imou", badge: "Système complet · Kit WiFi + NVR · Alternative",
     title: "Imou Kit WiFi (4CH NVR + 4 caméras)",
@@ -1651,6 +1659,14 @@ const CAM_PROFILES = {
     store: 'switchbot', storePath: 'outdoor-ptc-3k5mp',
     nightVision: 'ir', petDetection: false, packageDetection: false, maxSD: null, category: 'exterieur', longRange: true, haCompatible: true, hasSiren: false, hasIntercom: false, hasAutoTracking: false,
     sdAsin: null
+  },
+  reolink_indoor: {
+    brand: "Reolink", badge: "Intérieur · WiFi · Motorisée",
+    title: "Reolink E1",
+    desc: "Reolink a bien une caméra intérieure vérifiée : motorisée, avec suivi automatique et surtout un flux RTSP/ONVIF confirmé, ce qui permet de la relier directement à un NVR ou Home Hub Reolink comme les caméras extérieures de la marque.",
+    specs: ["4MP, rotation motorisée 355° horizontale et 50° verticale, suivi automatique", "Détection IA personne/animal/pleurs de bébé, vision nocturne infrarouge jusqu'à 12m", "Stockage carte microSD jusqu'à 512 Go, NVR Reolink (jusqu'à 36 caméras) ou Home Hub, pas d'abonnement obligatoire", "Audio bidirectionnel, mode confidentialité en un geste", "Compatible RTSP/ONVIF confirmé, Alexa et Google Assistant"],
+    asin: 'B0F835G7MS', nightVision: 'ir', petDetection: true, packageDetection: false, maxSD: '512 Go', category: 'interieur', haCompatible: true, hasSiren: false, hasIntercom: true, hasAutoTracking: true,
+    sdAsin: 'B07NY23WBG', sdLabel: "SanDisk High Endurance 128 Go"
   }
 };
 
@@ -1673,13 +1689,17 @@ const CAM_FAMILY_OF_BASECATEGORY = {
   doorbell: 'doorbell', doorbell_battery: 'doorbell', doorbell_screen: 'doorbell',
   poe_fixe: 'exterieur_filaire', zoom: 'exterieur_filaire',
   kit: 'kit',
-  solar_wifi_fixe: 'exterieur_sans_fil', solar_wifi_pt: 'exterieur_sans_fil', solar_4g: 'exterieur_sans_fil'
+  solar_wifi_fixe: 'exterieur_sans_fil', solar_wifi_pt: 'exterieur_sans_fil', solar_4g: 'exterieur_sans_fil', solar_4g_pt: 'exterieur_sans_fil'
 };
 
 // Pour chaque famille, la marque alternative vérifiée (si elle existe), le modèle à choisir,
 // et une note honnête sur le compromis si ce modèle ne correspond pas exactement (motorisé/fixe, budget...)
 const CAM_FAMILY_BRAND_ALT = {
   interieur: {
+    Reolink: {
+      pick: () => 'reolink_indoor',
+      note: (a) => a.motorized === 'fixe' ? "Reolink n'a pas de modèle fixe vérifié en intérieur, voici leur modèle motorisé E1, tu peux simplement ne pas utiliser la rotation." : ''
+    },
     SwitchBot: {
       pick: (a) => a.motorized === 'fixe' ? 'switchbot_premium' : (a.budget === 'eco' ? 'switchbot_budget' : 'switchbot_premium'),
       note: (a) => a.motorized === 'fixe' ? "SwitchBot n'a pas de modèle fixe vérifié, voici leur modèle motorisé le plus proche, tu peux simplement ne pas utiliser la rotation." : ''
@@ -1785,7 +1805,8 @@ const BUDGET_RESOLVE = {
   kit: { eco: 'kit', moyen: 'kit', peu_importe: 'kit' },
   solar_wifi_fixe: { eco: 'solar_wifi', moyen: 'solar_wifi', peu_importe: 'solar_wifi' },
   solar_wifi_pt: { eco: 'solar_wifi_pt', moyen: 'solar_wifi_pt', peu_importe: 'solar_wifi_pt' },
-  solar_4g: { eco: 'solar_4g', moyen: 'solar_4g', peu_importe: 'solar_4g' }
+  solar_4g: { eco: 'solar_4g', moyen: 'solar_4g', peu_importe: 'solar_4g' },
+  solar_4g_pt: { eco: 'solar_4g_pt', moyen: 'solar_4g_pt', peu_importe: 'solar_4g_pt' }
 };
 
 // Calcule, pour chaque marque connue, si elle a une référence vérifiée (native ou de repli) pour chaque
@@ -1817,7 +1838,7 @@ function camRankBrandsByCoverage(baseCategories) {
   }).filter(b => b.count > 0).sort((a, b) => b.count - a.count);
 }
 
-const CAM_NO_BUDGET_ALT = new Set(['doorbell', 'doorbell_battery', 'doorbell_screen', 'zoom', 'solar_wifi_pt', 'solar_4g']);
+const CAM_NO_BUDGET_ALT = new Set(['doorbell', 'doorbell_battery', 'doorbell_screen', 'zoom', 'solar_wifi_pt', 'solar_4g', 'solar_4g_pt']);
 
 // Petits conseils selon l'usage prioritaire choisi
 const CAM_USAGE_TIPS = {
@@ -1864,8 +1885,8 @@ function camZoneCategoryStep(a, place) {
   if (!a.power) return 'power';
   if (a.power === 'non') {
     if (!a.wifi) return 'wifi';
-    if (a.wifi === 'non') return { baseCategory: 'solar_4g' };
     if (!a.motorized) return 'motorized_solar';
+    if (a.wifi === 'non') return { baseCategory: a.motorized === 'motorisee' ? 'solar_4g_pt' : 'solar_4g' };
     return { baseCategory: a.motorized === 'motorisee' ? 'solar_wifi_pt' : 'solar_wifi_fixe' };
   }
   if (!a.multi) return 'multi';
@@ -1963,7 +1984,7 @@ function camRestart() {
 }
 
 function camEditBrandChoice() {
-  delete camAnswers.ecosystem;
+  camAnswers.ecosystem = 'une_app';
   delete camAnswers.existing_brand;
   camRenderWizard();
 }
