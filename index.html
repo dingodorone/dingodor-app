@@ -1788,7 +1788,35 @@ const BUDGET_RESOLVE = {
   solar_4g: { eco: 'solar_4g', moyen: 'solar_4g', peu_importe: 'solar_4g' }
 };
 
-// Catégories où le budget ne change pas le modèle (un seul choix vérifié disponible)
+// Calcule, pour chaque marque connue, si elle a une référence vérifiée (native ou de repli) pour chaque
+// catégorie de base donnée. Sert à proposer directement les marques qui couvrent vraiment tout le système,
+// plutôt que de demander au client de deviner une marque au hasard.
+const CAM_ALL_BRANDS = ['Reolink', 'TP-Link Tapo', 'EZVIZ', 'SwitchBot', 'Annke', 'Imou', 'Google Nest', 'Somfy', 'Aqara', 'Tuya/SmartLife'];
+
+function camBrandCoversCategory(brand, baseCategory) {
+  const nativeProfile = (BUDGET_RESOLVE[baseCategory] || {}).peu_importe;
+  if (nativeProfile && CAM_PROFILES[nativeProfile] && CAM_PROFILES[nativeProfile].brand === brand) return true;
+  const family = CAM_FAMILY_OF_BASECATEGORY[baseCategory];
+  if ((CAM_FAMILY_BRAND_ALT[family] || {})[brand]) return true;
+  return false;
+}
+
+function camGetAllZoneBaseCategories(a) {
+  const past = (a.zones || []).map(z => z.baseCategory);
+  const currentCat = camCategoryStep(a);
+  const current = (typeof currentCat === 'object') ? currentCat.baseCategory : null;
+  return current ? [...past, current] : past;
+}
+
+// Retourne la liste des marques triées par nombre de zones couvertes (les 100% en premier)
+function camRankBrandsByCoverage(baseCategories) {
+  return CAM_ALL_BRANDS.map(brand => {
+    const covered = baseCategories.map(bc => camBrandCoversCategory(brand, bc));
+    const count = covered.filter(Boolean).length;
+    return { brand, count, total: baseCategories.length, full: count === baseCategories.length };
+  }).filter(b => b.count > 0).sort((a, b) => b.count - a.count);
+}
+
 const CAM_NO_BUDGET_ALT = new Set(['doorbell', 'doorbell_battery', 'doorbell_screen', 'zoom', 'solar_wifi_pt', 'solar_4g']);
 
 // Petits conseils selon l'usage prioritaire choisi
@@ -2290,11 +2318,32 @@ function camRenderWizard() {
 
   const step = CAM_STEPS[result];
   let questionText = step.question;
+  let questionOptions = step.options;
+  let preQuestionNote = '';
   if (result === 'zone_scope') {
     const zoneCount = (camAnswers.zones || []).length;
     questionText = zoneCount === 0
       ? "Cette première caméra, c'est pour l'intérieur ou l'extérieur ?"
       : "Cette prochaine caméra, c'est pour l'intérieur ou l'extérieur ?";
+  }
+  if (result === 'existing_brand') {
+    const baseCategories = camGetAllZoneBaseCategories(camAnswers);
+    const ranked = camRankBrandsByCoverage(baseCategories);
+    const hasFullCoverage = ranked.some(b => b.full);
+    questionText = baseCategories.length > 1
+      ? "Quelle marque veux-tu utiliser pour centraliser tout ton système ?"
+      : "Quelle marque utilises-tu déjà principalement ?";
+    questionOptions = ranked.map(b => ({
+      value: b.brand,
+      label: b.brand,
+      sub: baseCategories.length > 1
+        ? (b.full ? "✓ Couvre toutes tes zones, une seule appli possible" : `Couvre ${b.count} zone(s) sur ${b.total}, ${b.total - b.count} appli(s) en plus à prévoir`)
+        : ''
+    }));
+    questionOptions.push({ value: 'autre', label: "Une autre marque", sub: "Xiaomi, Sannce, dis-moi ton modèle et je vérifie s'il correspond" });
+    if (baseCategories.length > 1 && !hasFullCoverage) {
+      preQuestionNote = `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Aucune marque ne couvre 100% de tes zones avec les références que j'ai vérifiées, il te faudra au moins 2 applis quel que soit ton choix. Voici les marques classées par nombre de zones couvertes.</div>`;
+    }
   }
   const answeredCount = Object.keys(camAnswers).length;
   const totalSteps = 12; // approx depth for progress bar
@@ -2306,9 +2355,10 @@ function camRenderWizard() {
   container.innerHTML = `
     <div class="cam-progress">${dots}</div>
     ${answeredCount > 0 ? `<button class="cam-back" onclick="camRestart()">↺ Recommencer</button>` : ''}
+    ${preQuestionNote}
     <div class="cam-question">${questionText}</div>
     <div class="cam-options">
-      ${step.options.map(o => `
+      ${questionOptions.map(o => `
         <button class="cam-option" onclick="camAnswerStep('${CAM_STEP_KEY_MAP[result]}', '${o.value}')">
           ${o.label}${o.sub ? `<span class="cam-option-sub">${o.sub}</span>` : ''}
         </button>
