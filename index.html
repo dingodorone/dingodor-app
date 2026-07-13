@@ -1380,11 +1380,12 @@ const CAM_PROFILES = {
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   switchbot_outdoor: {
-    brand: "SwitchBot", badge: "Sans fil · WiFi + Batterie · Alternative · Fixe",
-    title: "SwitchBot Outdoor Spotlight Cam 2K",
-    desc: "Alternative fixe à l'Argus 3 Pro et à l'EZVIZ BC1C : caméra sur batterie avec deux projecteurs LED qui s'allument automatiquement en cas de détection pour filmer en couleur de nuit. Panneau solaire vendu séparément en accessoire.",
-    specs: ["2K, deux projecteurs LED pour la vision nocturne EN COULEUR", "Détection IA humain/animal, réduit les fausses alertes", "Batterie 10000mAh (jusqu'à 180 jours), panneau solaire SwitchBot disponible séparément", "Alarme anti-arrachement 100dB si la caméra est retirée sans autorisation", "Étanche IP65, audio bidirectionnel, stockage carte microSD jusqu'à 256 Go ou cloud", "Appli SwitchBot, compatible Alexa/Google Home"],
-    asin: 'B0CR3WR73D', nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
+    brand: "SwitchBot", badge: "Sans fil · WiFi + Batterie + Solaire · Alternative · Fixe",
+    title: "SwitchBot Ensemble Caméra Spotlight Extérieure + Panneau Solaire",
+    desc: "Alternative fixe à l'Argus 3 Pro et à l'EZVIZ BC1C : caméra sur batterie avec deux projecteurs LED pour filmer en couleur de nuit, vendue ici directement avec son panneau solaire inclus dans le pack.",
+    specs: ["2K, deux projecteurs LED pour la vision nocturne EN COULEUR", "Détection IA humain/animal, réduit les fausses alertes", "Batterie rechargeable + panneau solaire INCLUS dans ce pack (autonomie continue)", "Alarme anti-arrachement 100dB si la caméra est retirée sans autorisation", "Étanche IP65, audio bidirectionnel, stockage carte microSD ou cloud", "Appli SwitchBot, compatible Alexa/Google Home"],
+    store: 'switchbot', storePath: 'combo-camera-projecteur-exterieur',
+    nightVision: 'color', petDetection: false, packageDetection: false, maxSD: '256 Go', category: 'exterieur', haCompatible: false, hasSiren: true, hasIntercom: true,
     sdAsin: 'B084CJJRBW', sdLabel: "SanDisk Max Endurance 256 Go"
   },
   tapo_fixed: {
@@ -1812,7 +1813,7 @@ const BUDGET_RESOLVE = {
 // Calcule, pour chaque marque connue, si elle a une référence vérifiée (native ou de repli) pour chaque
 // catégorie de base donnée. Sert à proposer directement les marques qui couvrent vraiment tout le système,
 // plutôt que de demander au client de deviner une marque au hasard.
-const CAM_ALL_BRANDS = ['Reolink', 'TP-Link Tapo', 'EZVIZ', 'SwitchBot', 'Annke', 'Imou', 'Google Nest', 'Somfy', 'Aqara', 'Tuya/SmartLife'];
+const CAM_ALL_BRANDS = ['Reolink', 'Imou', 'TP-Link Tapo', 'Aqara', 'EZVIZ', 'SwitchBot', 'Annke', 'Google Nest', 'Somfy', 'Tuya/SmartLife'];
 
 function camBrandCoversCategory(brand, baseCategory) {
   const nativeProfile = (BUDGET_RESOLVE[baseCategory] || {}).peu_importe;
@@ -1974,7 +1975,41 @@ function camAnswerStep(key, value) {
     camRenderWizard();
     return;
   }
+  if (key === 'ecosystem' && (value === 'une_app' || value === 'nouveau' || value === 'home_assistant')) {
+    camAnswers.ecosystem = value;
+    const baseCategories = camGetAllZoneBaseCategories(camAnswers);
+    if (baseCategories.length > 1) {
+      // Système à plusieurs zones : on choisit nous-mêmes la meilleure marque, pas la peine de demander au client
+      let ranked = camRankBrandsByCoverage(baseCategories);
+      if (value === 'home_assistant') {
+        // Ne garde que les marques réellement compatibles Home Assistant pour toutes les zones concernées
+        const haRanked = ranked.filter(b => baseCategories.every(bc => {
+          const nativeProfile = (BUDGET_RESOLVE[bc] || {}).peu_importe;
+          const isNative = nativeProfile && CAM_PROFILES[nativeProfile] && CAM_PROFILES[nativeProfile].brand === b.brand;
+          if (isNative) return CAM_PROFILES[nativeProfile].haCompatible;
+          const family = CAM_FAMILY_OF_BASECATEGORY[bc];
+          const alt = (CAM_FAMILY_BRAND_ALT[family] || {})[b.brand];
+          if (!alt) return false;
+          const altKey = alt.pick(camAnswers, bc);
+          return CAM_PROFILES[altKey] && CAM_PROFILES[altKey].haCompatible;
+        }));
+        if (haRanked.length > 0) ranked = haRanked;
+      }
+      if (ranked.length > 0) {
+        camAnswers.existing_brand = ranked[0].brand;
+        camAnswers._autoBrandChoice = true;
+      }
+    }
+    camRenderWizard();
+    return;
+  }
   camAnswers[key] = value;
+  camRenderWizard();
+}
+
+function camPickDifferentBrand() {
+  delete camAnswers.existing_brand;
+  delete camAnswers._autoBrandChoice;
   camRenderWizard();
 }
 
@@ -1984,9 +2019,7 @@ function camRestart() {
 }
 
 function camEditBrandChoice() {
-  camAnswers.ecosystem = 'une_app';
-  delete camAnswers.existing_brand;
-  camRenderWizard();
+  camAnswerStep('ecosystem', 'une_app');
 }
 
 // Applique la préférence de marque et le filtre Home Assistant sur la liste de profils à afficher
@@ -2275,16 +2308,28 @@ function camRenderWizard() {
       });
       const dkCurrent = camResolveDisplayKeys(result.profile, result.baseCategory, camAnswers);
       brandsUsed.add(CAM_PROFILES[dkCurrent.profileKeys[0]].brand);
+      const wasAutoChosen = !!camAnswers._autoBrandChoice;
+      const hasBrandSet = !!camAnswers.existing_brand;
+      const overrideBtn = `<button class="cam-restart-btn" onclick="camPickDifferentBrand()" style="margin-top:10px;padding:9px">🔄 Choisir moi-même une autre marque</button>`;
       if (brandsUsed.size > 1) {
-        const hadBrandPref = camAnswers.existing_brand && camAnswers.existing_brand !== 'autre';
-        multiBrandWarning = hadBrandPref
-          ? `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">⚠️ Malgré ta préférence pour ${camAnswers.existing_brand}, ce système utilise finalement plusieurs marques (${[...brandsUsed].join(', ')}) car ${camAnswers.existing_brand} n'a pas de référence vérifiée pour toutes les zones, regarde les avertissements par zone ci-dessus pour savoir laquelle. Ça veut dire une appli en plus à gérer pour cette zone précise.</div>`
-          : `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">
-              ⚠️ Ton système utilise actuellement plusieurs marques différentes (${[...brandsUsed].join(', ')}), ce qui veut dire une appli différente à ouvrir pour chaque marque, pas très pratique au quotidien.
-              <button class="cam-restart-btn" onclick="camEditBrandChoice()" style="margin-top:10px;padding:9px">🎯 Choisir une seule marque pour tout le système</button>
+        if (wasAutoChosen) {
+          multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">
+              🎯 On a choisi <strong>${camAnswers.existing_brand}</strong> pour toi, c'est la marque qui couvre le plus de zones de ton système (${[...brandsUsed].join(', ')} au total). Aucune marque ne couvre 100% de tes besoins avec les références vérifiées de ce guide, il faudra une appli en plus pour la ou les zones non couvertes (regarde les avertissements par zone ci-dessus).
+              ${overrideBtn}
             </div>`;
+        } else if (hasBrandSet) {
+          multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">
+              ⚠️ Malgré ta préférence pour ${camAnswers.existing_brand}, ce système utilise finalement plusieurs marques (${[...brandsUsed].join(', ')}) car ${camAnswers.existing_brand} n'a pas de référence vérifiée pour toutes les zones, regarde les avertissements par zone ci-dessus pour savoir laquelle. Ça veut dire une appli en plus à gérer pour cette zone précise.
+            </div>`;
+        } else {
+          multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:#ff8a65">
+              ⚠️ Ton système utilise plusieurs marques différentes (${[...brandsUsed].join(', ')}), ce qui veut dire une appli en plus à ouvrir. ${overrideBtn}
+            </div>`;
+        }
       } else if (brandsUsed.size === 1 && (zones.length > 0)) {
-        multiBrandWarning = `<div class="cam-note" style="margin-bottom:14px;color:var(--accent2)">✓ Toutes les caméras de ton système sont de la même marque (${[...brandsUsed][0]}), une seule appli à gérer.</div>`;
+        multiBrandWarning = wasAutoChosen
+          ? `<div class="cam-note" style="margin-bottom:14px;color:var(--accent2)">🎯 On a choisi <strong>${[...brandsUsed][0]}</strong> pour toi, c'est la seule marque qui couvre 100% de ton système : une seule appli à gérer.${overrideBtn}</div>`
+          : `<div class="cam-note" style="margin-bottom:14px;color:var(--accent2)">✓ Toutes les caméras de ton système sont de la même marque (${[...brandsUsed][0]}), une seule appli à gérer.</div>`;
       }
     }
 
