@@ -2008,6 +2008,8 @@ function camAnswerStep(key, value) {
 }
 
 function camPickDifferentBrand() {
+  // Force le passage par la question de marque manuelle, quelle que soit la réponse écosystème initiale
+  camAnswers.ecosystem = 'une_app';
   delete camAnswers.existing_brand;
   delete camAnswers._autoBrandChoice;
   camRenderWizard();
