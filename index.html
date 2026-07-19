@@ -1109,6 +1109,18 @@ function switchTab(id, el) {
   if (navEl) navEl.classList.add('active');
 }
 
+// Ouvre directement un onglet précis si l'URL contient un lien du type #camera, #promos, etc.
+(function () {
+  const validTabs = ['accueil', 'articles', 'promos', 'reseaux', 'camera', 'about'];
+  const requested = window.location.hash.replace('#', '');
+  if (validTabs.includes(requested)) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = Array.from(document.querySelectorAll('.tab')).find(t => t.getAttribute('onclick').includes(`'${requested}'`));
+      if (btn) switchTab(requested, btn);
+    });
+  }
+})();
+
 // === GUIDE CAMÉRAS DE SURVEILLANCE ===
 const CAM_TAG_FR = 'dingodor-21';
 const CAM_TAG_BE = 'dingodor00e-21';
