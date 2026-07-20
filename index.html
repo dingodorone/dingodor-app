@@ -40,6 +40,34 @@
     overflow-x: hidden;
   }
 
+  /* Ouvert comme une simple page web (lien depuis le blog) : mise en page plus large, façon site */
+  @media (display-mode: browser) {
+    body {
+      max-width: 900px;
+    }
+    .section {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+    header {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+    .tabs {
+      padding-left: 32px;
+      padding-right: 32px;
+      justify-content: center;
+    }
+    .promos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    #sec-camera {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
+
   /* HEADER */
   header {
     position: sticky;
