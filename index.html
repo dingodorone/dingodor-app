@@ -754,7 +754,7 @@
   <button class="tab" onclick="switchTab('promos', this)">Codes promo</button>
   <button class="tab" onclick="switchTab('reseaux', this)">Réseaux</button>
   <button class="tab" onclick="switchTab('camera', this)">Caméras</button>
-  <button class="tab" onclick="switchTab('about', this)">À propos</button>
+  <button class="tab" onclick="switchTab('about', this)">♥ Soutien</button>
 </div>
 
 <!-- SECTION ACCUEIL -->
@@ -786,7 +786,7 @@
 <!-- SECTION PROMOS -->
 <div class="section" id="sec-promos">
   <div class="hero" style="margin-bottom:20px">
-    <div class="hero-label">🛒 14 – 20 septembre 2026</div>
+    <div class="hero-label">🛒 Liste synchronisée automatiquement</div>
     <h2>Codes promo du moment</h2>
     <p>AliExpress 🇫🇷🇧🇪, SwitchBot, GeekBuying, GamsGo. Cliquez sur le code pour le copier.</p>
   </div>
@@ -794,7 +794,6 @@
   <div class="tabs" id="promo-filters" style="padding:0 0 12px 0;margin-bottom:4px">
     <button class="tab active" onclick="filterPromos('tous', this)">Tous</button>
     <button class="tab" onclick="filterPromos('AliExpress', this)">AliExpress</button>
-    <button class="tab" onclick="filterPromos('SwitchBot', this)">SwitchBot</button>
     <button class="tab" onclick="filterPromos('GeekBuying', this)">GeekBuying</button>
     <button class="tab" onclick="filterPromos('GamsGo', this)">GamsGo</button>
     <button class="tab" onclick="filterPromos('SwitchBot', this)">SwitchBot</button>
@@ -923,7 +922,7 @@
   </button>
   <button class="nav-item" id="nav-about" onclick="switchSection('about')">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    <span>Profil</span>
+    <span style="color:#ff6b8f;font-weight:700">♥ Soutien</span>
   </button>
 </nav>
 
@@ -993,37 +992,21 @@ function loadMoreArticles() {
   btn.style.display = articles.length > articlesShown ? 'block' : 'none';
 }
 
-const promos = [
-  // AliExpress France - 14/09 au 20/09/2026
-  { code: "FRFW02", brand: "AliExpress 🇫🇷", desc: "2€ dès 18€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW06", brand: "AliExpress 🇫🇷", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW11", brand: "AliExpress 🇫🇷", desc: "11€ dès 99€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW20", brand: "AliExpress 🇫🇷", desc: "20€ dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW30", brand: "AliExpress 🇫🇷", desc: "30€ dès 240€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW45", brand: "AliExpress 🇫🇷", desc: "45€ dès 355€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "FRFW60", brand: "AliExpress 🇫🇷", desc: "60€ dès 475€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  // AliExpress Belgique - 14/09 au 20/09/2026
-  { code: "NWE02", brand: "AliExpress 🇧🇪", desc: "2€ dès 18€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE06", brand: "AliExpress 🇧🇪", desc: "6€ dès 45€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE12", brand: "AliExpress 🇧🇪", desc: "12€ dès 89€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE20", brand: "AliExpress 🇧🇪", desc: "20€ dès 159€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE30", brand: "AliExpress 🇧🇪", desc: "30€ dès 239€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE45", brand: "AliExpress 🇧🇪", desc: "45€ dès 355€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  { code: "NWE60", brand: "AliExpress 🇧🇪", desc: "60€ dès 479€ d'achat", url: "https://s.click.aliexpress.com/e/_opGvt8K" },
-  // SwitchBot
-  { code: "10UPX1K7ODVGTO", brand: "SwitchBot Amazon", desc: "10% de réduction site officiel", url: "https://amzn.to/3nsAaWu" },
-  { code: "10Dingodor", brand: "SwitchBot Officiel", desc: "Code promo exclusif Dingodor", url: "https://www.switch-bot.com/?sca_ref=1102794.rW5weNSejk" },
-  // GamsGo
-  { code: "DEC88", brand: "GamsGo", desc: "Netflix, Disney+, ChatGPT... 5% de réduction", url: "https://www.gamsgo.com/partner/Gsbb4H" },
-  // GeekBuying
-  { code: "25NOVS05", brand: "GeekBuying", desc: "55€ de remise dès 650€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS04", brand: "GeekBuying", desc: "35€ de remise dès 450€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS03", brand: "GeekBuying", desc: "25€ de remise dès 350€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS02", brand: "GeekBuying", desc: "15€ de remise dès 150€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVS01", brand: "GeekBuying", desc: "5€ de remise dès 50€", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVSH1", brand: "GeekBuying 🏠", desc: "10€ dès 150€ (maison connectée)", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-  { code: "25NOVSH2", brand: "GeekBuying 🏠", desc: "15€ dès 200€ (maison connectée)", url: "https://www.geekbuying.com/go/8AN4bZMT" },
-];
+const PROMOS_URL = 'https://raw.githubusercontent.com/dingodorone/dingodor-data/main/promos.json';
+let promos = [];
+
+async function loadPromos() {
+  const list = document.getElementById('promos-list');
+  list.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">Chargement des codes à jour…</div>';
+  try {
+    const response = await fetch(`${PROMOS_URL}?v=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+    promos = await response.json();
+    list.innerHTML = promos.map(promoCard).join('');
+  } catch (_) {
+    list.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">Impossible de charger les codes. Vérifie ta connexion puis réessaie.</div>';
+  }
+}
 
 // === RENDER ===
 function articleCard(a) {
@@ -1076,7 +1059,7 @@ function promoCard(p) {
 loadArticlesFromRSS();
 document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
 // socials rendered on DOMContentLoaded
-document.getElementById('promos-list').innerHTML = promos.map(promoCard).join('');
+loadPromos();
   document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
 
 
