@@ -713,6 +713,112 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+
+  /* INTERFACE 2026 — harmonisée avec Dingodor One Tech */
+  :root {
+    --bg: #07111f;
+    --bg2: #0d1d2c;
+    --bg3: #152a3c;
+    --accent: #16c7d8;
+    --accent2: #0c78ff;
+    --text: #f6fbff;
+    --muted: #91a8b9;
+    --border: rgba(255,255,255,.1);
+    --card-r: 22px;
+  }
+  html { background:#07111f; }
+  body {
+    background:
+      radial-gradient(circle at 88% 0,rgba(22,199,216,.15),transparent 28%),
+      radial-gradient(circle at 0 32%,rgba(12,120,255,.1),transparent 25%),
+      var(--bg);
+    min-height:100dvh;
+  }
+  header {
+    height:68px;
+    padding:0 18px;
+    background:rgba(7,17,31,.88);
+    border-bottom-color:rgba(255,255,255,.08);
+    box-shadow:0 8px 30px rgba(0,0,0,.18);
+  }
+  .logo-icon { border-radius:12px; box-shadow:0 8px 20px rgba(12,120,255,.24); }
+  .logo-text { font-family:'DM Sans',sans-serif; font-weight:700; letter-spacing:-.02em; }
+  .logo-text span { color:#7f98aa; margin-top:3px; }
+  .search-btn { width:40px; height:40px; border-radius:13px; background:rgba(255,255,255,.055); }
+  .search-btn svg { stroke:#d8edf4; }
+  body > .tabs {
+    position:sticky;
+    top:68px;
+    z-index:90;
+    gap:7px;
+    padding:12px 18px;
+    background:rgba(7,17,31,.9);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .tab { padding:8px 14px; border-radius:999px; color:#91a8b9; background:rgba(255,255,255,.025); }
+  .tab.active { background:linear-gradient(135deg,#16c7d8,#0c78ff); border-color:transparent; box-shadow:0 8px 22px rgba(12,120,255,.22); }
+  .section { padding:22px 18px 112px; }
+  .hero {
+    padding:25px 22px;
+    border-radius:26px;
+    background:linear-gradient(145deg,rgba(18,48,70,.96),rgba(8,22,37,.98));
+    border-color:rgba(56,214,228,.24);
+    box-shadow:0 22px 55px rgba(0,0,0,.28);
+  }
+  .hero::before { width:180px; height:180px; background:#16c7d8; opacity:.12; }
+  .hero-label { color:#80edf5; background:rgba(22,199,216,.1); border-color:rgba(22,199,216,.28); font-weight:700; }
+  .hero h2 { font-family:'DM Sans',sans-serif; font-size:25px; line-height:1.15; letter-spacing:-.035em; }
+  .hero p { color:#a9becd; line-height:1.65; }
+  .section-title { font-family:'DM Sans',sans-serif; color:#80edf5; font-weight:700; letter-spacing:.12em; margin:26px 2px 13px; }
+  .article-card,.promo-card,.social-card,.about-card,.affiliate-card {
+    background:linear-gradient(145deg,rgba(19,40,57,.96),rgba(10,25,40,.98));
+    border-color:rgba(255,255,255,.09);
+    box-shadow:0 14px 34px rgba(0,0,0,.18);
+  }
+  .article-card { padding:17px; border-radius:22px; }
+  .article-img { height:175px; border-radius:15px; }
+  .article-title,.about-name,.cam-result-title { font-family:'DM Sans',sans-serif; letter-spacing:-.02em; }
+  .article-tag { color:#78eaf2; background:rgba(22,199,216,.1); }
+  .promo-card { border-radius:18px; padding:15px; }
+  .promo-badge,.support-btn,.cam-buy-btn { background:linear-gradient(135deg,#16c7d8,#0c78ff); }
+  .promo-copy { color:#7cebf3; background:rgba(22,199,216,.08); border-color:rgba(22,199,216,.22); }
+  .social-card { border-radius:18px; }
+  .affiliate-btn { color:#7cebf3; border-color:rgba(22,199,216,.25); background:rgba(22,199,216,.08); }
+  #cam-wizard { padding:20px 16px; border:1px solid rgba(255,255,255,.09); border-radius:24px; background:linear-gradient(145deg,rgba(18,40,58,.94),rgba(8,22,36,.97)); box-shadow:0 18px 45px rgba(0,0,0,.24); }
+  .cam-question { font-family:'DM Sans',sans-serif; font-size:20px; letter-spacing:-.02em; }
+  .cam-option { border-radius:16px; background:rgba(255,255,255,.04); min-height:64px; }
+  .cam-option:active { background:rgba(22,199,216,.1); border-color:#16c7d8; }
+  .cam-progress span { height:4px; background:rgba(255,255,255,.08); }
+  .cam-progress span.done { background:linear-gradient(90deg,#16c7d8,#0c78ff); }
+  .bottom-nav {
+    bottom:10px;
+    width:calc(100% - 20px);
+    max-width:410px;
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:22px;
+    background:rgba(10,24,38,.94);
+    box-shadow:0 18px 45px rgba(0,0,0,.48);
+  }
+  .nav-item { border-radius:14px; min-height:51px; }
+  .nav-item.active { color:#71e8f1; background:rgba(22,199,216,.09); }
+  .nav-item svg { width:21px; height:21px; }
+  .search-overlay { background:rgba(5,13,23,.97); }
+  .search-input { background:#10263a; border-color:rgba(255,255,255,.12); }
+  .install-banner { left:14px; right:14px; bottom:92px; border-radius:18px; background:#10283d; border:1px solid rgba(22,199,216,.25); box-shadow:0 18px 40px rgba(0,0,0,.4); }
+  .app-shortcuts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 24px; }
+  .app-shortcut { min-height:92px; padding:15px; border:1px solid rgba(255,255,255,.09); border-radius:18px; background:linear-gradient(145deg,rgba(20,45,65,.96),rgba(10,25,40,.96)); color:var(--text); text-align:left; font:600 13px/1.25 'DM Sans',sans-serif; cursor:pointer; box-shadow:0 12px 28px rgba(0,0,0,.16); }
+  .app-shortcut span { display:grid; place-items:center; width:34px; height:34px; margin-bottom:10px; border-radius:11px; background:rgba(22,199,216,.11); font-size:18px; }
+  .app-shortcut small { display:block; margin-top:4px; color:var(--muted); font-size:10px; font-weight:400; }
+  @media(min-width:700px) {
+    body { max-width:1040px; }
+    .section { padding-left:32px; padding-right:32px; }
+    .app-shortcuts { grid-template-columns:repeat(4,1fr); }
+    .articles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .bottom-nav { max-width:520px; }
+  }
 </style>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -763,6 +869,13 @@
     <div class="hero-label">🏠 Domotique</div>
     <h2>Le blog 100% domotique & bons plans tech</h2>
     <p>Guides, astuces, codes promo et tests produits Xiaomi, Tuya, Sonoff et bien d'autres.</p>
+  </div>
+
+  <div class="app-shortcuts" aria-label="Accès rapides">
+    <button class="app-shortcut" onclick="switchSection('articles')"><span>📰</span>Articles<small>Les dernières sorties tech</small></button>
+    <button class="app-shortcut" onclick="switchSection('promos')"><span>🏷️</span>Codes promo<small>Les offres du moment</small></button>
+    <button class="app-shortcut" onclick="switchSection('camera')"><span>📹</span>Guide caméra<small>Trouver le bon modèle</small></button>
+    <button class="app-shortcut" onclick="switchSection('about')"><span>♥</span>Soutenir<small>Aider le projet</small></button>
   </div>
 
   <div class="section-title">Derniers articles</div>
@@ -881,11 +994,11 @@
   </div>
   <div class="about-card">
     <div class="section-title" style="margin-bottom:10px">Contact & liens</div>
-    <a href="https://dingodoronetech.wordpress.com/contact/" target="_blank" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border)">
+    <a href="https://dingodoronetech.eu.org/page.html?slug=contact" target="_blank" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:14px;color:var(--text)">📬 Formulaire de contact</span>
       <svg width="14" height="14" fill="none" stroke="var(--muted)" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
-    <a href="https://dingodoronetech.wordpress.com" target="_blank" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;padding:10px 0">
+    <a href="https://dingodoronetech.eu.org/" target="_blank" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;padding:10px 0">
       <span style="font-size:14px;color:var(--text)">🌐 Site complet</span>
       <svg width="14" height="14" fill="none" stroke="var(--muted)" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
