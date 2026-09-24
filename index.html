@@ -1107,8 +1107,36 @@ function loadMoreArticles() {
   btn.style.display = articles.length > articlesShown ? 'block' : 'none';
 }
 
-const PROMOS_URL = 'https://raw.githubusercontent.com/dingodorone/dingodor-data/main/promos.json';
+const SHARED_DATA_URL = 'https://dingodoronetech.eu.org/data/site-data.json';
+const DEFAULT_PROMOS_URL = 'https://raw.githubusercontent.com/dingodorone/dingodor-data/main/promos.json';
+let sharedData = null;
+let PROMOS_URL = DEFAULT_PROMOS_URL;
 let promos = [];
+
+async function loadSharedData() {
+  try {
+    const response = await fetch(`${SHARED_DATA_URL}?v=${Date.now()}`, {cache: 'no-store'});
+    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+    sharedData = await response.json();
+    PROMOS_URL = sharedData.promosUrl || DEFAULT_PROMOS_URL;
+    if (Array.isArray(sharedData.socials) && sharedData.socials.length) {
+      socials = sharedData.socials.map(item => ({...item, desc: item.description}));
+    }
+  } catch (_) {}
+  renderSharedLists();
+}
+
+function renderSharedLists() {
+  document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
+  document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
+  const list = document.getElementById('affiliate-list');
+  if (!list || !sharedData?.partners?.length) return;
+  list.innerHTML = sharedData.partners.map(partner => `<a class="affiliate-card" href="${partner.url}" target="_blank" rel="noopener sponsored">
+    <div class="affiliate-icon">${partner.icon || '🛒'}</div>
+    <div class="affiliate-info"><div class="affiliate-name">${partner.name}</div><div class="affiliate-desc">${partner.description || ''}</div></div>
+    <span class="affiliate-btn">Visiter →</span>
+  </a>`).join('');
+}
 
 async function loadPromos() {
   const list = document.getElementById('promos-list');
@@ -1137,7 +1165,7 @@ function articleCard(a) {
   </a>`;
 }
 
-const socials = [
+let socials = [
   { name: "YouTube", icon: "▶️", desc: "Vidéos & tests domotique", url: "https://www.youtube.com/user/dingodor1", color: "#ff0000" },
   { name: "Facebook", icon: "📘", desc: "Actus & discussions", url: "https://www.facebook.com/DingodorOne", color: "#1877f2" },
   { name: "Discord", icon: "💬", desc: "Communauté domotique", url: "https://discord.gg/jKkUg4B", color: "#5865f2" },
@@ -1170,12 +1198,9 @@ function promoCard(p) {
   </a>`;
 }
 
-// Load articles from WordPress RSS
+// Le contenu change sans imposer une nouvelle version de l'application.
 loadArticlesFromAPI();
-document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
-// socials rendered on DOMContentLoaded
-loadPromos();
-  document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
+loadSharedData().finally(loadPromos);
 
 
 // === RADIO ===

@@ -1,4 +1,4 @@
-const CACHE = 'dingodor-v15';
+const CACHE = 'dingodor-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -21,6 +21,15 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+  const isDynamicData = url.hostname === 'public-api.wordpress.com' ||
+    url.hostname === 'raw.githubusercontent.com' ||
+    url.pathname.endsWith('/data/site-data.json');
+
+  if (isDynamicData) {
+    e.respondWith(fetch(e.request, {cache: 'no-store'}));
+    return;
+  }
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request).then(res => {
