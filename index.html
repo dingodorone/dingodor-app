@@ -1043,31 +1043,33 @@
 
 <script>
 // === DATA ===
-// Articles chargés dynamiquement depuis WordPress RSS
+// Articles chargés directement depuis l'API officielle WordPress
 let articles = [];
 
-async function loadArticlesFromRSS() {
+function articleText(value) {
+  const node = document.createElement('div');
+  node.innerHTML = value || '';
+  return (node.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+async function loadArticlesFromAPI() {
   showLoadingArticles();
-  const FEED = 'https://dingodoronetech.wordpress.com/feed/?posts_per_rss=100';
-  const PROXY = 'https://corsproxy.io/?';
-  const URL = PROXY + 'https://feed2json.org/convert?url=' + encodeURIComponent(FEED);
+  const API = 'https://public-api.wordpress.com/rest/v1.1/sites/dingodoronetech.wordpress.com/posts/?number=50&fields=ID,title,slug,date,excerpt,featured_image';
 
   try {
-    const res = await fetch(URL);
+    const res = await fetch(API, {cache: 'no-store'});
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (data.items && data.items.length > 0) {
-      articles = data.items.map(item => {
-        // Extract first image from content_html
-        const imgMatch = (item.content_html || '').match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i);
-        const img = imgMatch ? imgMatch[1].split('?')[0] + '?w=400' : null;
+    if (data.posts && data.posts.length > 0) {
+      articles = data.posts.map(post => {
+        const excerpt = articleText(post.excerpt).slice(0, 150);
         return {
-          title: item.title || 'Sans titre',
-          date: new Date(item.date_published).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
+          title: articleText(post.title) || 'Sans titre',
+          date: new Date(post.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}),
           tag: 'Article',
-          excerpt: (item.summary || '').replace(/<[^>]*>/g,'').replace(/&#[0-9]+;/g,' ').trim().substring(0,150) + '...',
-          url: item.url,
-          img: img
+          excerpt: excerpt + (excerpt.length === 150 ? '…' : ''),
+          url: `https://dingodoronetech.eu.org/article.html?slug=${encodeURIComponent(post.slug)}`,
+          img: post.featured_image || null
         };
       });
       renderArticles();
@@ -1084,7 +1086,7 @@ function showLoadingArticles() {
 }
 
 function showArticleError() {
-  const err = '<div style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px">Impossible de charger les articles.<br>Vérifiez votre connexion.</div>';
+  const err = '<div style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px">Impossible de charger les articles.<br><button type="button" onclick="loadArticlesFromAPI()" style="margin-top:12px;padding:9px 16px;border:1px solid var(--accent);border-radius:999px;background:rgba(22,199,216,.08);color:#7cebf3;cursor:pointer">Réessayer</button></div>';
   document.getElementById('home-articles').innerHTML = err;
   document.getElementById('all-articles').innerHTML = err;
 }
@@ -1169,7 +1171,7 @@ function promoCard(p) {
 }
 
 // Load articles from WordPress RSS
-loadArticlesFromRSS();
+loadArticlesFromAPI();
 document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
 // socials rendered on DOMContentLoaded
 loadPromos();
