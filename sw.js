@@ -1,8 +1,9 @@
-const CACHE = 'dingodor-v19';
+const CACHE = 'dingodor-v20-logo-maison';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './logo-maison.svg',
   './icon-192.png',
   './icon-512.png'
 ];
