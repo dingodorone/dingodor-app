@@ -905,6 +905,7 @@
     <h2>Codes promo du moment</h2>
     <p>AliExpress 🇫🇷🇧🇪, SwitchBot, GeekBuying, GamsGo. Cliquez sur le code pour le copier.</p>
   </div>
+  <div id="promo-highlights"></div>
   <div class="section-title">Codes actifs</div>
   <div class="tabs" id="promo-filters" style="padding:0 0 12px 0;margin-bottom:4px">
     <button class="tab active" onclick="filterPromos('tous', this)">Tous</button>
@@ -1135,23 +1136,46 @@ async function loadSharedData() {
 function renderSharedLists() {
   document.getElementById('home-socials').innerHTML = socials.slice(0, 4).map(socialCard).join('');
   document.getElementById('all-socials').innerHTML = socials.map(socialCard).join('');
+  renderPartners();
+}
+
+function renderPartners() {
   const list = document.getElementById('affiliate-list');
-  if (!list || !sharedData?.partners?.length) return;
-  list.innerHTML = sharedData.partners.map(partner => `<a class="affiliate-card" href="${partner.url}" target="_blank" rel="noopener sponsored">
+  if (!list) return;
+  const partners = [...(sharedData?.partners || [])];
+  promoStores.forEach(store => {
+    const shopName = store.shop === 'SwitchBot' ? 'SwitchBot Europe' : store.shop;
+    if (!partners.some(partner => partner.name.toLowerCase() === shopName.toLowerCase())) {
+      partners.push({name: store.shop, url: store.url, description: store.desc, icon: '🛒'});
+    }
+  });
+  if (!partners.length) return;
+  list.innerHTML = partners.map(partner => `<a class="affiliate-card" href="${partner.url}" target="_blank" rel="noopener sponsored">
     <div class="affiliate-icon">${partner.icon || '🛒'}</div>
     <div class="affiliate-info"><div class="affiliate-name">${partner.name}</div><div class="affiliate-desc">${partner.description || ''}</div></div>
     <span class="affiliate-btn">Visiter →</span>
   </a>`).join('');
 }
 
+let promoStores = [];
 async function loadPromos() {
   const list = document.getElementById('promos-list');
   list.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">Chargement des codes à jour…</div>';
   try {
     const response = await fetch(`${PROMOS_URL}?v=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Erreur ${response.status}`);
-    promos = await response.json();
+    const entries = await response.json();
+    promoStores = entries.filter(entry => entry.type === 'store');
+    const today = new Date();
+    const todayLocal = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+    promos = entries.filter(entry => entry.type !== 'store' && entry.code && (!entry.expires || entry.expires >= todayLocal));
     list.innerHTML = promos.map(promoCard).join('');
+    if (!promos.length) list.innerHTML = '<p style="color:var(--muted);padding:16px 0">Aucun code en cours actuellement.</p>';
+    document.getElementById('promo-highlights').innerHTML = promoStores.filter(store => store.highlightTitle && store.highlightUrl).map(store =>
+      `<a class="affiliate-card" href="${store.highlightUrl}" target="_blank" rel="noopener sponsored" style="margin-bottom:18px">
+        <div class="affiliate-icon">🛒</div><div class="affiliate-info"><div class="affiliate-name">${store.shop} · ${store.highlightTitle}</div><div class="affiliate-desc">${store.highlightNote || ''}</div></div><span class="affiliate-btn">Voir →</span>
+      </a>`).join('');
+    renderPartners();
   } catch (_) {
     list.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">Impossible de charger les codes. Vérifie ta connexion puis réessaie.</div>';
   }
