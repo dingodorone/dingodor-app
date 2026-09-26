@@ -2735,7 +2735,8 @@ function dismissInstall() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js');
+      const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      await reg.update();
       
       // Vérifier les mises à jour toutes les 60 secondes
       setInterval(() => reg.update(), 60000);
