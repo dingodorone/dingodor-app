@@ -1,4 +1,4 @@
-const CACHE = 'dingodor-v18';
+const CACHE = 'dingodor-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(path => new Request(path, {cache: 'reload'})))));
 });
 
 self.addEventListener('activate', e => {
@@ -32,7 +32,7 @@ self.addEventListener('fetch', e => {
   }
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).then(res => {
+      fetch(e.request, {cache: 'no-store'}).then(res => {
         const resClone = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, resClone));
         return res;
