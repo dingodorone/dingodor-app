@@ -820,6 +820,17 @@
     .bottom-nav { max-width:520px; }
   }
 </style>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "32adeb26-bc3e-4f21-8a33-212ad164cb4c",
+      serviceWorkerPath: "/sw.js",
+      notifyButton: { enable: false },
+    });
+  });
+</script>
 </head>
 <body>
 
@@ -832,9 +843,6 @@
     <svg fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   </button>
 </header>
-<div style="margin:12px 16px;padding:12px 14px;border:1px solid #286072;border-radius:12px;background:#10283d;color:#d3eef5;font-size:12px;line-height:1.5">
-  La version mobile est maintenant sur le même domaine que le site. Pour recevoir ses notifications, ouvrez la <a href="https://dingodoronetech.eu.org/app/" style="color:#72e5f0;font-weight:700">nouvelle version mobile</a> et autorisez-les sur votre appareil.
-</div>
 
 <!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
@@ -846,10 +854,11 @@
 </div>
 
 <!-- TABS -->
-<div class="tabs">
+<div class="tabs" id="main-tabs">
   <button class="tab active" onclick="switchTab('accueil', this)">Accueil</button>
   <button class="tab" onclick="switchTab('articles', this)">Articles</button>
   <button class="tab" onclick="switchTab('promos', this)">Codes promo</button>
+  <button class="tab" onclick="switchTab('partenaires', this)">Boutiques partenaires</button>
   <button class="tab" onclick="switchTab('reseaux', this)">Réseaux</button>
   <button class="tab" onclick="switchTab('camera', this)">Caméras</button>
   <button class="tab" onclick="switchTab('about', this)">♥ Soutien</button>
@@ -866,6 +875,7 @@
   <div class="app-shortcuts" aria-label="Accès rapides">
     <button class="app-shortcut" onclick="switchSection('articles')"><span>📰</span>Articles<small>Les dernières sorties tech</small></button>
     <button class="app-shortcut" onclick="switchSection('promos')"><span>🏷️</span>Codes promo<small>Les offres du moment</small></button>
+    <button class="app-shortcut" onclick="switchSection('partenaires')"><span>🛒</span>Boutiques partenaires<small>Mes liens vers les boutiques</small></button>
     <button class="app-shortcut" onclick="switchSection('camera')"><span>📹</span>Guide caméra<small>Trouver le bon modèle</small></button>
     <button class="app-shortcut" onclick="switchSection('about')"><span>♥</span>Soutenir<small>Aider le projet</small></button>
   </div>
@@ -903,7 +913,12 @@
     <button class="tab" onclick="filterPromos('GamsGo', this)">GamsGo</button>
     <button class="tab" onclick="filterPromos('SwitchBot', this)">SwitchBot</button>
   </div>
-  <div class="section-title" style="margin-top:20px">Boutiques partenaires</div>
+  <div class="promos" id="promos-list"></div>
+</div>
+
+<!-- SECTION BOUTIQUES PARTENAIRES -->
+<div class="section" id="sec-partenaires">
+  <div class="section-title">Boutiques partenaires</div>
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px" id="affiliate-list">
     <a class="affiliate-card" href="https://amzn.to/415XsVU" target="_blank" rel="noopener">
       <div class="affiliate-icon">📦</div>
@@ -930,7 +945,6 @@
       <span class="affiliate-btn">Visiter →</span>
     </a>
   </div>
-  <div class="promos" id="promos-list"></div>
 </div>
 
 
@@ -1233,17 +1247,12 @@ function switchSection(id) {
   const navEl = document.getElementById('nav-' + id);
   if (navEl) navEl.classList.add('active');
   // sync tabs
-  document.querySelectorAll('.tab').forEach(t => {
-    if (t.textContent.toLowerCase().includes(id === 'about' ? 'propos' : id === 'accueil' ? 'accueil' : id)) {
-      t.classList.add('active');
-    } else {
-      t.classList.remove('active');
-    }
-  });
+  document.querySelectorAll('#main-tabs .tab').forEach(t =>
+    t.classList.toggle('active', t.getAttribute('onclick').includes(`'${id}'`)));
 }
 
 function switchTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#main-tabs .tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
@@ -1254,11 +1263,11 @@ function switchTab(id, el) {
 
 // Ouvre directement un onglet précis si l'URL contient un lien du type #camera, #promos, etc.
 (function () {
-  const validTabs = ['accueil', 'articles', 'promos', 'reseaux', 'camera', 'about'];
+  const validTabs = ['accueil', 'articles', 'promos', 'partenaires', 'reseaux', 'camera', 'about'];
   const requested = window.location.hash.replace('#', '');
   if (validTabs.includes(requested)) {
     document.addEventListener('DOMContentLoaded', () => {
-      const btn = Array.from(document.querySelectorAll('.tab')).find(t => t.getAttribute('onclick').includes(`'${requested}'`));
+      const btn = Array.from(document.querySelectorAll('#main-tabs .tab')).find(t => t.getAttribute('onclick').includes(`'${requested}'`));
       if (btn) switchTab(requested, btn);
     });
   }
@@ -2702,7 +2711,7 @@ function dismissInstall() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('./sw.js');
+      const reg = await navigator.serviceWorker.register('/sw.js');
       
       // Vérifier les mises à jour toutes les 60 secondes
       setInterval(() => reg.update(), 60000);
@@ -2731,7 +2740,31 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<!-- POPUP ABONNEMENT -->
+<div id="subscribe-popup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#161616;border:1px solid #1a7aff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;position:relative">
+    <button onclick="closePopup()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
+    <div style="font-size:32px;margin-bottom:10px">📬</div>
+    <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:8px">Abonnez-vous aux actualités !</div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:18px">Retrouvez les derniers articles domotique et bons plans sur le nouveau site. Activez les notifications pour être prévenu des nouveautés.</div>
+    <a href="https://dingodoronetech.eu.org/" target="_blank" rel="noopener" style="display:block;background:#1a7aff;color:#fff;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:10px">🔔 Ouvrir le nouveau site</a>
+    <button onclick="closePopup()" style="background:none;border:none;color:#666;font-size:12px;cursor:pointer;text-decoration:underline">Non merci</button>
+  </div>
+</div>
 
+<script>
+// Afficher la popup après 10 secondes, une seule fois par session
+function closePopup() {
+  document.getElementById('subscribe-popup').style.display = 'none';
+  sessionStorage.setItem('popup-closed', '1');
+}
+setTimeout(() => {
+  if (!sessionStorage.getItem('popup-closed')) {
+    const popup = document.getElementById('subscribe-popup');
+    popup.style.display = 'flex';
+  }
+}, 10000);
+</script>
 
 
 </body>
