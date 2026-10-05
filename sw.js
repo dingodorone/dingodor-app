@@ -1,4 +1,4 @@
-const CACHE = 'dingodor-v20-logo-maison';
+const CACHE = 'dingodor-v21-amazon-be';
 const ASSETS = [
   './',
   './index.html',
